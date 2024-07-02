@@ -1,0 +1,24 @@
+log: 
+  version: 1
+  disable_existing_loggers: true
+  formatters:
+    simple:
+      format: 'INVIAS - %(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+    file:
+      class: logging.FileHandler
+      level: DEBUG
+      filename: invias/src/logs/translation.log
+      formatter: simple
+  loggers:
+    simpleExample:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+  root:
+    level: DEBUG
+    handlers: [console,file]
