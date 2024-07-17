@@ -12,6 +12,16 @@ from django.conf import settings
 import asyncio
 import os
 import pytz
+import shutil
+
+from invias.models import (
+    Method_Publication,
+    Pending,
+    Store,
+)
+from asgiref.sync import sync_to_async
+from threading import Thread
+import time
 
 # List of function value
 # ------------------------------------------------------
@@ -270,55 +280,80 @@ def session_process(session) -> None:
         # if the session is opened is executed the following code
         else:
             logging.info("116: Payload put data")
-            # # follow normal process
+            # follow normal process
             # pub_initial(session, data)
-
-            logging.info("send_pending_data 1111111111")
-            loop = asyncio.get_running_loop()
-            loop.create_task(send_pending_data(session))
-
-            logging.info("data_files 1111111111")
-            loop_data = asyncio.get_running_loop()
-            loop_data.create_task(send_data_files_loop(session))
+            start_process(session)
     else:
-        logging.info("send_pending_data 22222222222")
-        loop = asyncio.get_running_loop()
-        loop.create_task(send_pending_data(session))
+        start_process(session)
 
-        logging.info("data_files 22222222222")
-        loop_data = asyncio.get_running_loop()
-        loop_data.create_task(send_data_files_loop(session))
+def start_process(session):
+    try:
+
+        store_values = Store.objects.filter(
+            pending__method_publication__name=session.typepublication,
+            status=0
+        ).exists()
+
+        if store_values:
+            Thread(target=send_data_files_loop, args=(session,)).start()
+        else:
+            logging.info(
+                f"STORE - {session.typepublication} - Not Data..."
+            )
+            pendind_process(session)
+
+    except Exception as e:
+        print('ERROR ::::::::: start_process ', e)
+
+def pendind_process(session):
+    logging.info(
+        f"PENDING - {session.typepublication} - Init Process..."
+    )
+
+    pending_values = Pending.objects.filter(
+        method_publication__name=session.typepublication,
+        status=0
+    )
+
+    if pending_values:
+        pending_ids = [pending_value.id for pending_value in pending_values]
+        print('pending_ids::::::::::')
+        print(pending_ids)
+        Pending.objects.filter(id__in=pending_ids).update(status=1)
+        Thread(target=send_pending_data, args=(session, pending_values)).start()
+    else:
+        logging.info(
+            f"PENDING - {session.typepublication} - Not Data..."
+        )
+
+    logging.info(
+        f"PENDING - {session.typepublication} - End Process..."
+    )
+
 
 def stored_data(publication_type, data) -> None:
-    # variable to store a list of dictionary with information about publication and status (unsent, sent)
-    file_data = []
 
     path = f"{settings.BASE_DIR}/{settings.UNSENT_PUB_DIR}"
-    print('path::::::::::::::::::')
-    print(path)
     if not os.path.exists(path):
-        print('create::::::::::::::::::')
         os.makedirs(path)
 
+    try:
+        method_publication_val = Method_Publication.objects.get(name=publication_type)
+    except Method_Publication.DoesNotExist:
+        method_publication_val = Method_Publication()
+        method_publication_val.name = publication_type
+        method_publication_val.amount = 1
+        method_publication_val.save()
+
+    date_name = str(datetime.now().strftime("%d%m%Y %H%M%S-%f"))
     # filename where are stored the publication
     unsent_publication_file = (
-        f"{settings.BASE_DIR}/{settings.UNSENT_PUB_DIR}/{publication_type}-{datetime.now().date()}.json"
+        f"{settings.UNSENT_PUB_DIR}/{publication_type}-{date_name}.json"
     )
-    logging.info(
-        f"MAIN_TASK_LOOP - storing publications in {unsent_publication_file}..."
-    )
-    try:
-        with open(unsent_publication_file, encoding=settings.ENCODING) as f:
-            file_data = json.load(f)
-    except FileNotFoundError:
-        pass
-    # the current publication, stored in pub_data, is added to file_data list
-    file_data = file_data + data
-    # the files where are stored the unsent publication is opened as a writing file
-    # the information is updated using the current file_data list
-    # with open(unsent_publication_file, "wb+", encoding=settings.ENCODING) as file_sent:
-    with open(unsent_publication_file, "w", encoding=settings.ENCODING) as file_sent:
-        json.dump(file_data, file_sent)
+
+    with open(settings.BASE_DIR / unsent_publication_file, "w", encoding=settings.ENCODING) as file_sent:
+        json.dump(data, file_sent)
+
     logging.info("112: The unsent publication is stored in the file")
 
 def pending_data(publication_type, data) -> None:
@@ -326,169 +361,229 @@ def pending_data(publication_type, data) -> None:
     file_data = []
 
     path = f"{settings.BASE_DIR}/{settings.PENDING_PUB_DIR}"
-    print('path::::::::::::::::::')
-    print(path)
     if not os.path.exists(path):
-        print('create::::::::::::::::::')
         os.makedirs(path)
 
+    date_name = str(datetime.now().strftime("%d%m%Y %H%M%S-%f"))
     # filename where are stored the publication
     pending_publication_file = (
-        f"{settings.BASE_DIR}/{settings.PENDING_PUB_DIR}/{publication_type}.json"
+        f"{settings.PENDING_PUB_DIR}/{publication_type}-{date_name}.json"
     )
-    logging.info(
-        f"MAIN_TASK_LOOP - storing publications in {pending_publication_file}..."
-    )
-    try:
-        with open(pending_publication_file, encoding=settings.ENCODING) as f:
-            file_data = json.load(f)
-    except FileNotFoundError:
-        pass
+
+    print('pending_publication_file::::::::::::::::::')
+    print(pending_publication_file)
+
     # the current publication, stored in pub_data, is added to file_data list
     file_data = file_data + data
     # the files where are stored the unsent publication is opened as a writing file
     # the information is updated using the current file_data list
     # with open(unsent_publication_file, "wb+", encoding=settings.ENCODING) as file_sent:
-    with open(pending_publication_file, "w", encoding=settings.ENCODING) as file_sent:
+    with open(settings.BASE_DIR / pending_publication_file, "w", encoding=settings.ENCODING) as file_sent:
         json.dump(file_data, file_sent)
+
+        try:
+            method_publication_val = Method_Publication.objects.get(name=publication_type)
+            method_publication_val.amount = method_publication_val.amount + 1
+        except Method_Publication.DoesNotExist:
+            method_publication_val = Method_Publication()
+            method_publication_val.name = publication_type
+            method_publication_val.amount = 1
+        method_publication_val.save()
+
+        pending_val = Pending()
+        pending_val.method_publication = method_publication_val
+        pending_val.path = pending_publication_file
+        pending_val.save()
+
     logging.info("112: The unsent publication is stored in the file")
 
 
-async def send_data_files_loop(session):
-    try:
-        logging.info("CHECK_DATA_FILES_LOOP - checking files with data to be uploaded...")
-        # set limit date to publish data
-        limit_datetime = datetime.now() - timedelta(days=settings.ENV_PUB_LIFETIME)
-        # list of possible files regarding the limit date
-        possible_files = [
-            f"{session.typepublication}-{(limit_datetime + timedelta(days=days)).date()}.json"
-            for days in range(settings.ENV_PUB_LIFETIME + 1)
-        ]
-        # list of found files in the UNSENT_PUB_DIR dir
-        files_dir = []
-        # check if UNSENT_PUB_DIR dir exist. If not, it is created
-        if not os.path.exists(settings.UNSENT_PUB_DIR):
-            os.makedirs(settings.UNSENT_PUB_DIR)
-        else:
-            files_dir = os.listdir(settings.UNSENT_PUB_DIR)
-        logging.info(f"CHECK_DATA_FILES_LOOP - {files_dir}")
-        # check if found files in UNSENT_PUB_DIR dir are in the possible_files list
-        files_check = [
-            file_name for file_name in files_dir if file_name in possible_files
-        ]
-        print('files_check:::::::::::::::::::::')
-        print(files_check)
-        if files_check:
-            logging.info("CHECK_DATA_FILES_LOOP - opening session...")
-            # publish data stored in files found in the files_check list
-            for file_name in files_check:
-                try:
+def send_data_files_loop(session):
+    logging.info("CHECK_DATA_FILES_LOOP - checking files with data to be uploaded...")
+    # Maximum time to send data before starting the main process again
+    max_time = 60*(settings.ENV_REQUEST_TIME - 1)
+    timeout = time.time() + (max_time if max_time > 0 else 30)
+
+    while True:
+        # Set limit publish data
+        store_values = Store.objects.filter(
+            pending__method_publication__name=session.typepublication,
+            status=0
+        )[:settings.ENV_PROCESS_AMOUNT]
+
+        if not store_values:
+            print('break while send_data_files_loop ::::::::::::::::')
+            logging.info(
+                f"CHECK_DATA_FILES_LOOP - store values with data to be published not found..."
+            )
+            break
+        
+        if time.time() > timeout:
+            print('break while send_data_files_loop ::::::::::::::::')
+            logging.info(
+                f"CHECK_DATA_FILES_LOOP - time limit met..."
+            )
+            break
+        print('continue')
+
+        store_ids = [store_value.id for store_value in store_values]
+        Store.objects.filter(id__in=store_ids).update(status=1)
+        print('store_ids::::::::::')
+        print(store_ids)
+
+        files_data = []
+        for store_value in store_values:
+            try:
+                logging.info(
+                    "CHECK_DATA_FILES_LOOP - opening file with unsent publications..."
+                )
+                # open file and store data in file_data list
+                with open(
+                    settings.BASE_DIR / str(store_value.path), encoding=settings.ENCODING
+                ) as file_sent:
+                    file_data = json.load(file_sent)
+                # iterate on each publication found in the file
+                print('file_data::::::::::::::::::::::::::::::::::::::::::::::')
+                print(file_data)
+
+                files_data = files_data + file_data
+            except FileNotFoundError:
+                store_value.error_description = 'FileNotFoundError'
+                store_value.status = 3
+                store_value.save()
+                logging.error(
+                    f"CHECK_DATA_FILES_LOOP - file {str(store_value.path)} not found..."
+                )
+                pass
+
+        
+        print('SEND DATA STORE')
+        try:
+            logging.info("113: Snapshot Synchronisation")
+            res = session.request_put_snapshot_data(files_data)
+            logging.info("changing status...")
+            if not res == b"{}":
+                # logging.info(res.json())
+                logging.info(
+                    "117: response <"
+                    + str(res.status_code)
+                    + "> "
+                    + str(res.content, settings.ENCODING)
+                )
+                # the status of each sent publication is changed to sent if response is 200
+                if res.status_code == 200:
                     logging.info(
-                        "CHECK_DATA_FILES_LOOP - opening files with unsent publications..."
+                        f"CHECK_DATA_FILES_LOOP - success..."
                     )
+                    Store.objects.filter(id__in=store_ids).update(status=2)
+                    # removing file with sent data
+                    # os.remove(settings.BASE_DIR / settings.UNSENT_PUB_DIR / file_name)
+                else:
+                    Store.objects.filter(id__in=store_ids).update(status=0)
+                    res = session.request_close_session()
+            else:
+                Store.objects.filter(id__in=store_ids).update(status=0)
+                res = session.request_close_session()
+
+        except requests.exceptions.ConnectionError:
+            logging.error("CHECK_DATA_FILES_LOOP - error opening session...")
+            pass
+
+        time.sleep(settings.ENV_PROCESS_TIME_SECONDS)
+
+def send_pending_data(session, pending_values):
+    try:
+        logging.info("PENDING - checking data")
+
+        logging.info(
+            "PENDING - opening files pending publications..."
+        )
+
+        files_data = []
+        pending_ids = [pending_value.id for pending_value in pending_values]
+        if pending_values:
+            for pending_value in pending_values:
+
+                pending_publication_file = (
+                    f"{settings.BASE_DIR}/{pending_value.path}"
+                )
+
+                print('pending_publication_file::::::::::::::::::::')
+                print(pending_publication_file)
+                
+                try:
                     # open file and store data in file_data list
                     with open(
-                        settings.BASE_DIR / settings.UNSENT_PUB_DIR / file_name, encoding=settings.ENCODING
+                        pending_publication_file, encoding=settings.ENCODING
                     ) as file_sent:
                         file_data = json.load(file_sent)
                     # iterate on each publication found in the file
-                    print('file_data::::::::::::::::::::::::::::::::::::::::::::::')
-                    print(file_data)
-
-                    print('SEND DATA STORE')
-
-                    logging.info("113: Snapshot Synchronisation")
-                    res = session.request_put_snapshot_data(file_data)
-                    logging.info("changing status...")
-                    if not res == b"{}":
-                        # logging.info(res.json())
-                        logging.info(
-                            "117: response <"
-                            + str(res.status_code)
-                            + "> "
-                            + str(res.content, settings.ENCODING)
-                        )
-                        # the status of each sent publication is changed to sent if response is 200
-                        if res.status_code == 200:
-                            logging.info(
-                                f"CHECK_DATA_FILES_LOOP - removing file {file_name}..."
-                            )
-                            # removing file with sent data
-                            os.remove(settings.BASE_DIR / settings.UNSENT_PUB_DIR / file_name)
-                        else:
-                            res = session.request_close_session()
-                    else:
-                        res = session.request_close_session()
+                    logging.info("116: Payload put data")
+                    files_data = files_data + file_data
 
                 except FileNotFoundError:
                     logging.error(
-                        f"CHECK_DATA_FILES_LOOP - file {file_name} not found..."
+                        f"PENDING - file {session.typepublication} - {pending_publication_file} not found..."
                     )
                     pass
-        else:
-            logging.info(
-                f"CHECK_DATA_FILES_LOOP - files with data to be published not found..."
-            )
-    except requests.exceptions.ConnectionError:
-        logging.error("CHECK_DATA_FILES_LOOP - error opening session...")
-        pass
 
-async def send_pending_data(session):
-    try:
-        logging.info("PENDING - checking data")
-        try:
-            logging.info(
-                "PENDING - opening file pending publications..."
-            )
+            # # -----------------------------------------------
+            # pending_to_store(pending_values)
+            # # -----------------------------------------------
 
-            pending_publication_file = (
-                f"{settings.BASE_DIR}/{settings.PENDING_PUB_DIR}/{session.typepublication}.json"
-            )
-
-            # open file and store data in file_data list
-            with open(
-                pending_publication_file, encoding=settings.ENCODING
-            ) as file_sent:
-                file_data = json.load(file_sent)
-            # iterate on each publication found in the file
-            logging.info("116: Payload put data")
-            print('file_data 123123123 ::::::::::::::::::::::::::::::::::::::::::::::')
-            print(file_data)
-
-            stored_data(session.typepublication, file_data)
-            res = session.request_close_session()
-            session.session_id = None
-
-            # res = session.request_put_data(file_data)
-            # if not res == b"{}":
-            #     logging.info(
-            #         "119: response <"
-            #         + str(res.status_code)
-            #         + "> "
-            #         + str(res.content, settings.ENCODING)
-            #     )
-            #     if res.status_code == 200:
-            #         logging.info(
-            #             f"PENDING - removing file {session.typepublication}..."
-            #         )
-            #     else:
-            #         stored_data(session.typepublication, file_data)
-            #         res = session.request_close_session()
-            #         session.session_id = None
-            # else:
-            #     stored_data(session.typepublication, file_data)
-            #     res = session.request_close_session()
-            #     session.session_id = None
-
-
-            # Removing file with sent data
-            os.remove(pending_publication_file)
-
-        except FileNotFoundError:
-            logging.error(
-                f"PENDING - file {session.typepublication} not found..."
-            )
-            pass
+            res = session.request_put_data(files_data)
+            if not res == b"{}":
+                logging.info(
+                    "119: response <"
+                    + str(res.status_code)
+                    + "> "
+                    + str(res.content, settings.ENCODING)
+                )
+                if res.status_code == 200:
+                    logging.info(
+                        f"PENDING - removing file {session.typepublication}..."
+                    )
+                    Pending.objects.filter(id__in=pending_ids).update(status=2)
+                else:
+                    pending_to_store(pending_values)
+            else:
+                pending_to_store(pending_values)
     except requests.exceptions.ConnectionError:
         logging.error("PENDING - error opening session...")
+        pass
+
+def pending_to_store(pending_values):
+    pending_ids = [pending_value.id for pending_value in pending_values]
+    for pending_value in pending_values:
+        stored_file(pending_value)
+
+    Pending.objects.filter(id__in=pending_ids).update(status=3)
+
+def stored_file(pending_value) -> None:
+
+    path = f"{settings.BASE_DIR}/{settings.UNSENT_PUB_DIR}"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+    pending_publication_file = (
+        f"{settings.BASE_DIR}/{pending_value.path}"
+    )
+
+    date_name = str(datetime.now().strftime("%d%m%Y %H%M%S-%f"))
+    unsent_publication_file = (
+        f"{settings.UNSENT_PUB_DIR}/{pending_value.method_publication.name}-{date_name}.json"
+    )
+    try:
+        shutil.move(pending_publication_file, unsent_publication_file)
+
+        store_val = Store()
+        store_val.pending = pending_value
+        store_val.path = unsent_publication_file
+        store_val.save()
+
+        logging.info("112: The unsent publication is stored in the file")
+    except FileNotFoundError:
+        logging.error(
+            f"PENDING TO STORE - file {pending_value.method_publication.name} - {pending_publication_file} not found..."
+        )
         pass

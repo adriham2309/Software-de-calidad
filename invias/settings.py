@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-z!d4)$_^*n6gwxt34ubn-$+6d6#eng4-n4v2$-%l+hy0_76cv4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '34.28.128.104']
 
 
 # Application definition
@@ -75,13 +76,34 @@ WSGI_APPLICATION = 'invias.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# LOCAL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'invias2',
+        'HOST': 'localhost',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
     }
 }
 
+# # SERVER
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'HOST': '34.123.92.206',
+#         'USER': 'postgres',
+#         'PASSWORD': 'O_#>g[42Ba54z~{7',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -118,6 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -132,7 +155,7 @@ POSTGRES_USER="this is part of the dotenv"
 # lifetime of stored publications (days)
 ENV_PUB_LIFETIME=1
 # interval of time to send a request to open the session (minutes)
-ENV_REQUEST_TIME=5
+ENV_REQUEST_TIME=3
 # Identifier
 ENV_COUNTRY_CODE='CO'
 ENV_NATIONAL_IDENTIFIER='INVIA'
@@ -147,6 +170,9 @@ ENV_TIMEZONE = "America/Bogota"
 ENV_MAX_SIZE= 10485760
 #path of mapping file to sitetable 
 ENV_MAPPING_PATH="translator/mapping.json"
+
+ENV_PROCESS_AMOUNT = 2
+ENV_PROCESS_TIME_SECONDS = 5
 
 # Encoding
 ENCODING ='latin-1'

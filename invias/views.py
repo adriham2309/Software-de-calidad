@@ -60,11 +60,13 @@ def run(session):
     config = yaml.safe_load(open(config_path, encoding = settings.ENCODING))
     config_log = config['log']
     logging.config.dictConfig(config_log)
-    loop = asyncio.new_event_loop()
-    loop.create_task(main_task_loop(session))
-    loop.run_forever()
+    # loop = asyncio.new_event_loop()
+    # loop.create_task(main_task_loop(session))
+    # loop.run_forever()
 
-    asyncio.set_event_loop(loop)
+    main_task_loop(session)
+
+    # asyncio.set_event_loop(loop)
     
 @api_view(['POST'])
 def load(request, option):
