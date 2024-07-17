@@ -268,7 +268,8 @@ def session_process(session) -> None:
                 + "> "
                 + str(res.content, settings.ENCODING)
             )
-        except:
+        except Exception as e:
+            print('Open Session Error ', e)
             res = None
         # if the session is not opened then execute the following code
         if session.session_id is None:
