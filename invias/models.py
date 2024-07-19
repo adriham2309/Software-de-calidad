@@ -5,6 +5,8 @@ class Method_Publication(models.Model):
     name = models.CharField(max_length=50)
     amount = models.IntegerField(default=0)
     modify_date = models.DateTimeField(auto_now=True)
+    last_process = models.DateTimeField(null=True)
+    verification_date = models.DateTimeField(null=True)
     status = models.IntegerField(default=0)
 
     def __str__(self):

@@ -180,6 +180,8 @@ UNSENT_PUB_DIR = "store"
 PENDING_PUB_DIR = "pending"
 UNSENT_PUB_PATH = UNSENT_PUB_DIR + '/pending_publications.json' #.format(datetime.today().date())
 
+TOKEN_ERROR = "asdfghj"
+
 """
 ENDPOINTS
 """

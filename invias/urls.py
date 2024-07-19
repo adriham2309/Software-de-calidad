@@ -20,4 +20,6 @@ from invias import views
 urlpatterns = [
     path('start/<str:option>', views.start),
     path('load/<str:option>', views.load),
+    path('state_error/<str:option>', views.state_error),
+    path('detail_method/<str:option>', views.detail_method),
 ]

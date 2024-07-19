@@ -2,13 +2,21 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
+from django.utils import timezone
 
 from invias.src.stateful.push.core import SessionManager
 from invias.src.stateful.push.cms import main_task_loop
-from invias.src.translator.bogota_translator import pending_data
+from invias.src.translator.bogota_translator import pending_data, pending_to_store
 
 from threading import Thread
 
+from invias.models import (
+    Method_Publication,
+    Pending,
+    Store,
+)
+from datetime import datetime
+# import datetime
 import logging
 import logging.config
 import yaml
@@ -46,8 +54,21 @@ def start(request, option):
 
     session = SessionManager()
     session.typepublication = TYPE_PUBLICATION_DICT[option]
+    
+    try:
+        method_publication_val = Method_Publication.objects.get(name=TYPE_PUBLICATION_DICT[option])
+        if (timezone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
+            print('Start service::::')
+            Thread(target=run, args=(session,)).start()
+        else:
+            print('You must wait to start the service again::::')
+    except Method_Publication.DoesNotExist:
+        response['method'] = {
+            'name': TYPE_PUBLICATION_DICT[option],
+            'message': 'First time'
+        }
+        Thread(target=run, args=(session,)).start()
 
-    Thread(target=run, args=(session,)).start()
     response['status'] = True
     status_response = status.HTTP_200_OK
     return Response(response, status=status_response)
@@ -88,3 +109,70 @@ def process_data(type_publication, payload):
     print(type_publication)
     print(payload)
     pending_data(type_publication, payload)
+
+@api_view(['POST'])
+def state_error(request, option):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    try:
+        data = request.data
+        token = data['token']
+        if token == settings.TOKEN_ERROR:
+            type_publication = TYPE_PUBLICATION_DICT[option]
+            Thread(target=update_state, args=(type_publication,)).start()
+
+            response['status'] = True
+            status_response = status.HTTP_200_OK
+    except:
+        pass
+    return Response(response, status=status_response)
+
+def update_state(type_publication):
+    """ Actualiza el estatus a falla """
+    print('update_state ::::::::::::::::::::::::::::')
+
+    pending_values = Pending.objects.filter(
+        method_publication__name=type_publication,
+        status__in=[0,1]
+    )
+
+    if pending_values:
+        pending_to_store(pending_values, 4)
+
+@api_view(['GET'])
+def detail_method(request, option):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    try:
+        type_publication = TYPE_PUBLICATION_DICT[option]
+        data = {'method': type_publication}
+        
+        try:
+            method_publication_val = Method_Publication.objects.get(name=type_publication)
+            data['last_verification_process'] = method_publication_val.verification_date
+            data['last_update'] = method_publication_val.last_process
+            data['amount'] = method_publication_val.amount
+
+            pending_count = Pending.objects.filter(
+                method_publication=method_publication_val,
+                status=0
+            ).count()
+
+            store_count = Store.objects.filter(
+                pending__method_publication=method_publication_val,
+                status=0
+            ).count()
+
+            data['pending_for_send'] = pending_count
+            data['snap_shot_for_send'] = store_count
+        except Method_Publication.DoesNotExist:
+            pass
+
+        response['status'] = True
+        response['data'] = data
+        status_response = status.HTTP_200_OK
+    except:
+        pass
+    return Response(response, status=status_response)

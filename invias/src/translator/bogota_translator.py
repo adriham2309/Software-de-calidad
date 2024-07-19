@@ -22,6 +22,7 @@ from invias.models import (
 from asgiref.sync import sync_to_async
 from threading import Thread
 import time
+from django.utils import timezone
 
 # List of function value
 # ------------------------------------------------------
@@ -252,6 +253,14 @@ def pub_initial(session, data):
 def session_process(session) -> None:
     """stasteful session control"""
     print(f"send information of {session.typepublication}")
+
+    try:
+        method_publication_val = Method_Publication.objects.get(name=session.typepublication)
+        method_publication_val.verification_date = timezone.now()
+        method_publication_val.save()
+    except Method_Publication.DoesNotExist:
+        pass
+
     if session.task.session is None:
         # try to open session
         logging.info(f"METHOD: {session.typepublication}")
@@ -389,6 +398,7 @@ def pending_data(publication_type, data) -> None:
             method_publication_val = Method_Publication()
             method_publication_val.name = publication_type
             method_publication_val.amount = 1
+        method_publication_val.last_process = timezone.now()
         method_publication_val.save()
 
         pending_val = Pending()
@@ -482,9 +492,11 @@ def send_data_files_loop(session):
                 else:
                     Store.objects.filter(id__in=store_ids).update(status=0)
                     res = session.request_close_session()
+                    break
             else:
                 Store.objects.filter(id__in=store_ids).update(status=0)
                 res = session.request_close_session()
+                break
 
         except requests.exceptions.ConnectionError:
             logging.error("CHECK_DATA_FILES_LOOP - error opening session...")
@@ -529,7 +541,7 @@ def send_pending_data(session, pending_values):
                     pass
 
             # # -----------------------------------------------
-            # pending_to_store(pending_values)
+            # pending_to_store(pending_values, 3)
             # # -----------------------------------------------
 
             res = session.request_put_data(files_data)
@@ -546,19 +558,19 @@ def send_pending_data(session, pending_values):
                     )
                     Pending.objects.filter(id__in=pending_ids).update(status=2)
                 else:
-                    pending_to_store(pending_values)
+                    pending_to_store(pending_values, 3)
             else:
-                pending_to_store(pending_values)
+                pending_to_store(pending_values, 3)
     except requests.exceptions.ConnectionError:
         logging.error("PENDING - error opening session...")
         pass
 
-def pending_to_store(pending_values):
+def pending_to_store(pending_values, status):
     pending_ids = [pending_value.id for pending_value in pending_values]
     for pending_value in pending_values:
         stored_file(pending_value)
 
-    Pending.objects.filter(id__in=pending_ids).update(status=3)
+    Pending.objects.filter(id__in=pending_ids).update(status=status)
 
 def stored_file(pending_value) -> None:
 
