@@ -62,7 +62,7 @@ def start(request, option):
             Thread(target=run, args=(session,)).start()
         else:
             print('You must wait to start the service again::::')
-    except Method_Publication.DoesNotExist:
+    except:
         response['method'] = {
             'name': TYPE_PUBLICATION_DICT[option],
             'message': 'First time'
