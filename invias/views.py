@@ -103,6 +103,35 @@ def load(request, option):
     status_response = status.HTTP_200_OK
     return Response(response, status=status_response)
 
+@api_view(['POST'])
+def load_multi_text(request, option, start, end):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    data = request.data
+    payload_or = data['payload'].copy()
+    payload = data['payload'].copy()
+
+    measurementSiteTableReference = payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id']
+    measurementSiteReference = payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id']
+
+    for i in range(start, end):
+        new_payload = payload.copy()
+        new_payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id'] = (
+            measurementSiteTableReference + str(i)
+        )
+
+        new_payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id'] = (
+            measurementSiteReference + 'J' + str(i)
+        )
+        type_publication = TYPE_PUBLICATION_DICT[option]
+        Thread(target=process_data, args=(type_publication, payload)).start()
+
+    response['status'] = True
+    status_response = status.HTTP_200_OK
+    return Response(response, status=status_response)
+
+
 def process_data(type_publication, payload):
     """ Recibe y formatea la data, se agrega a la cola """
     print('process_data ::::::::::::::::::::::::::::')
