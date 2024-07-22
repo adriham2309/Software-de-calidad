@@ -125,7 +125,7 @@ def load_multi_text(request, option, start, end):
             measurementSiteReference + 'J' + str(i)
         )
         type_publication = TYPE_PUBLICATION_DICT[option]
-        Thread(target=process_data, args=(type_publication, payload)).start()
+        Thread(target=process_data, args=(type_publication, new_payload)).start()
 
     response['status'] = True
     status_response = status.HTTP_200_OK
