@@ -21,5 +21,5 @@ def main_task_loop(session):
             logging.info('106: The execution of the Bogotá translator ends')
         except ConnectionError:
             logging.error("205: An unexpected error occurred in the execution of the translator.")
-        time.sleep(30)
-        # time.sleep(60 * settings.ENV_REQUEST_TIME)
+        # time.sleep(30)
+        time.sleep(60 * settings.ENV_REQUEST_TIME)

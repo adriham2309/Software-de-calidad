@@ -284,6 +284,14 @@ def session_process(session) -> None:
         if session.session_id is None:
             logging.info("110: Timeout or fail on openSession")
             logging.info("111: Storing publications in files...")
+
+            pending_values = Pending.objects.filter(
+                method_publication__name=session.typepublication,
+                status=0
+            )
+            if pending_values:
+                Thread(target=pending_to_store, args=(pending_values, 3)).start()
+
             # data to be stored in a file due to the server is not responding
             # the data has the unsent status
             # stored_data(session.typepublication, data)
@@ -567,10 +575,9 @@ def send_pending_data(session, pending_values):
 
 def pending_to_store(pending_values, status):
     pending_ids = [pending_value.id for pending_value in pending_values]
+    Pending.objects.filter(id__in=pending_ids).update(status=status)
     for pending_value in pending_values:
         stored_file(pending_value)
-
-    Pending.objects.filter(id__in=pending_ids).update(status=status)
 
 def stored_file(pending_value) -> None:
 

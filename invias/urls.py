@@ -23,4 +23,5 @@ urlpatterns = [
     path('test/<str:option>/<int:start>/<int:end>', views.load_multi_text),
     path('state_error/<str:option>', views.state_error),
     path('detail_method/<str:option>', views.detail_method),
+    path('open_log/<str:option>', views.open_log),
 ]

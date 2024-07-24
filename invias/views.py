@@ -97,7 +97,8 @@ def load(request, option):
     data = request.data
     payload = data['payload']
     type_publication = TYPE_PUBLICATION_DICT[option]
-    Thread(target=process_data, args=(type_publication, payload)).start()
+    # Thread(target=process_data, args=(type_publication, payload)).start()
+    pending_data(type_publication, payload)
 
     response['status'] = True
     status_response = status.HTTP_200_OK
@@ -109,28 +110,78 @@ def load_multi_text(request, option, start, end):
     status_response = status.HTTP_400_BAD_REQUEST
 
     data = request.data
-    payload_or = data['payload'].copy()
-    payload = data['payload'].copy()
-
-    measurementSiteTableReference = payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id']
-    measurementSiteReference = payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id']
-
-    for i in range(start, end):
-        new_payload = payload.copy()
-        new_payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id'] = (
-            measurementSiteTableReference + str(i)
-        )
-
-        new_payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id'] = (
-            measurementSiteReference + 'J' + str(i)
-        )
-        type_publication = TYPE_PUBLICATION_DICT[option]
-        Thread(target=process_data, args=(type_publication, new_payload)).start()
+    payload = data['payload']
+    type_publication = TYPE_PUBLICATION_DICT[option]
+    Thread(target=process_multi_data, args=(type_publication, payload, start, end)).start()
 
     response['status'] = True
     status_response = status.HTTP_200_OK
     return Response(response, status=status_response)
 
+def process_multi_data(type_publication, payload, start, end):
+    """ Realiza ciclo de prueba """
+    print('process_multi_data ::::::::::::::::::::::::::::')
+    print(type_publication)
+    
+    if type_publication == 'measuredDataPublication':
+        measurementSiteTableReference = payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id']
+        measurementSiteReference = payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id']
+        for i in range(start, end):
+            new_payload = payload.copy()
+            new_payload[0]['roadTrafficDataMeasuredDataPublication']['measurementSiteTableReference'][0]['_id'] = (
+                measurementSiteTableReference + str(i)
+            )
+            new_payload[0]['roadTrafficDataMeasuredDataPublication']['siteMeasurements'][0]['measurementSiteReference']['_id'] = (
+                measurementSiteReference + 'J' + str(i)
+            )
+            print('new_payload:::::::::::::')
+            print(new_payload)
+            pending_data(type_publication, new_payload)
+
+    elif type_publication == 'elaboratedDataPublication':
+        for i in range(start, end):
+            new_payload = payload.copy()
+            pending_data(type_publication, new_payload)
+
+    elif type_publication == 'situationPublication':
+        situationPublication = payload[0]['situationPublication']['situation'][0]['id']
+
+        for i in range(start, end):
+            new_payload = payload.copy()
+            new_payload[0]['situationPublication']['situation'][0]['id'] = (
+                situationPublication + str(i)
+            )
+            print('new_payload:::::::::::::')
+            print(new_payload)
+            pending_data(type_publication, new_payload)
+
+    elif type_publication == 'MeasuredSiteTablePublication':
+        measurementSiteTable = payload[0]['measurementSiteTablePublication']['measurementSiteTable'][0]['id']
+
+        for i in range(start, end):
+            new_payload = payload.copy()
+            new_payload[0]['measurementSiteTablePublication']['measurementSiteTable'][0]['id'] = (
+                measurementSiteTable + str(i)
+            )
+            print('new_payload:::::::::::::')
+            print(new_payload)
+            pending_data(type_publication, new_payload)
+
+    elif type_publication == 'vmsPublication':
+        for i in range(start, end):
+            new_payload = payload.copy()
+            pending_data(type_publication, new_payload)
+
+    elif type_publication == 'vmsTablePublication':
+        vmsControllerTable = payload[0]['vmsTablePublication']['vmsControllerTable'][0]['_id']
+        for i in range(start, end):
+            new_payload = payload.copy()
+            new_payload[0]['vmsTablePublication']['vmsControllerTable'][0]['_id'] = (
+                vmsControllerTable + str(i)
+            )
+            print('new_payload:::::::::::::')
+            print(new_payload)
+            pending_data(type_publication, new_payload)
 
 def process_data(type_publication, payload):
     """ Recibe y formatea la data, se agrega a la cola """
@@ -197,6 +248,29 @@ def detail_method(request, option):
             data['pending_for_send'] = pending_count
             data['snap_shot_for_send'] = store_count
         except Method_Publication.DoesNotExist:
+            pass
+
+        response['status'] = True
+        response['data'] = data
+        status_response = status.HTTP_200_OK
+    except:
+        pass
+    return Response(response, status=status_response)
+
+@api_view(['GET'])
+def open_log(request, option):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    try:
+        type_publication = TYPE_PUBLICATION_DICT[option]
+        data = {'method': type_publication}
+
+        try:
+            with open(settings.BASE_DIR / 'invias/src/logs/translation.log', encoding=settings.ENCODING) as file:
+                lines = file.read().splitlines()
+                data['log'] = lines
+        except:
             pass
 
         response['status'] = True

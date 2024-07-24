@@ -126,7 +126,7 @@ class SessionManager(Session):
         return response
 
     def request_put_data(self, payload: list) -> Response:
-        logging.error('2000: request_put_data')
+        logging.info('2000: request_put_data')
         """
         Method to put data to the server. This method returns an instance of the :class:`requests.Response` class which
         indicates whether the data format is correct or not.
