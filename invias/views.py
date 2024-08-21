@@ -76,8 +76,8 @@ def start(request, option):
             'name': TYPE_PUBLICATION_DICT[option],
             'message': 'First time'
         }
-        Thread(target=dataset, args=(option,)).start()
-        time.sleep(10)
+        # Thread(target=dataset, args=(option,)).start()
+        # time.sleep(60)
         Thread(target=run, args=(session,)).start()
 
     response['status'] = True
@@ -295,6 +295,7 @@ def dataset(option):
     while True:
         print('dataset init')
         if option == '3':
+            # ARREGLAR el orden en cola.
             data_query = json.dumps({
                 "from": 0,
                 "size": 150,
@@ -351,7 +352,7 @@ def dataset(option):
                 id_dai = dai["_id"]
                 iddai = id_dai.replace('-','')
 
-                if id_dai not in file_data_ids['ids']:
+                if id_dai not in file_data_ids['ids'] and dai["_source"]["catalog"]["desc"] == "INV-DAI-208-5501":
                     print('id_dai:::::')
                     print(id_dai)
                     file_data_ids['ids'].append(id_dai)
@@ -442,26 +443,27 @@ def dataset(option):
                         }
                     }
 
+                    locationReference = {
+                        "locationByReference": {
+                            "predefinedLocationReference": {
+                                "targetClass": "measurementSiteTable",
+                                "_version": "1",
+                                "_id": "208-5501"
+                            }
+                        }
+                    }
+
                     if penalty_type in [10, 7, 9]:
                         option_enum = {
-                            10: 'slowVehicle',
-                            7: 'vehicleOnWrongCarriageway',
-                            9: 'vehicleStuck',
+                            10: "slowVehicle",
+                            7: "vehicleOnWrongCarriageway",
+                            9: "vehicleStuck",
                         }
                         enum = option_enum[penalty_type]
-                        enumVehicle = {
-                            "title": "VehicleObstructionTypeEnum",
-                            "description": "Types of obstructions involving vehicles.",
-                            "type": "string",
-                            "enum": [
-                                enum
-                            ]
-                        }
-
                         data_general.update({
-                            "locationReference": "falta",
+                            "locationReference": locationReference,
                             "vehicleObstructionType": {
-                                "value": enumVehicle
+                                "value": enum
                             },
                             "involvedVehicleType": {
                                 "value": 1
@@ -473,16 +475,9 @@ def dataset(option):
 
                     elif penalty_type == 12:
                         data_general.update({
-                            "locationReference": "falta",
+                            "locationReference": locationReference,
                             "abnormalTrafficType": {
-                                "value": {
-                                    "title": "AbnormalTrafficTypeEnum",
-                                    "description": "Descriptive terms for abnormal traffic conditions specifically relating to the nature of the traffic movement, implying levels of service.",
-                                    "type": "string",
-                                    "enum": [
-                                        "heavyTraffic"
-                                    ]
-                                },
+                                "value": "heavyTraffic"
                             },
                             "queueLenght": 0
                         })
@@ -490,20 +485,13 @@ def dataset(option):
                         situationRecord = [{
                             'situationGeneralObstruction': data_general
                         }]
+
                     elif penalty_type == 11:
-                        
                         data_general.update({
-                            "locationReference": "falta",
+                            "locationReference": locationReference,
                             "obstructionType": [
                                 {
-                                    "value": {
-                                        "title": "ObstructionTypeEnum",
-                                        "description": "Types of obstructions on the roadway.",
-                                        "type": "string",
-                                        "enum": [
-                                            "objectOnTheRoad"
-                                        ]
-                                    }
+                                    "value": "objectOnTheRoad"
                                 },
                             ]
                         })
