@@ -292,241 +292,242 @@ def open_log(request, option):
     return Response(response, status=status_response)
 
 def dataset(option):
-    print('dataset init')
-    if option == '3':
-        data_query = json.dumps({
-            "from": 0,
-            "size": 150,
-            "sort": [
-                {
-                    "@timestamp": {
-                        "order": "desc"
-                    }
-                },
-                "_score"
-            ],
-            "track_total_hits": True,
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "range": {
-                                "@timestamp": {
-                                    "boost": 2,
-                                    "format": "yyyy-MM-dd HH:mm:ss.SSSZZ",
-                                    "gte": "2024-08-20 23:31:08.382-0500",
-                                    "lte": "2025-08-30 23:31:08.382-0500"
-                                }
-                            }
-                        },
-                    ]
-                }
-            }
-        })
-        
-        headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
-
-        obj_response = requests.post(
-            'http://20.99.184.101/elastic-api/neural.dai.output*/_search?format=json', 
-            auth=HTTPBasicAuth('elastic', 'Colombia1234$'),
-            data=data_query,
-            headers=headers
-        )
-
-        elementos = json.loads(obj_response.text)
-        
-        print('elementos hits')
-        file_data_ids = { 
-            "ids": []
-        }
-        path_id = f"{settings.BASE_DIR}/invias/src/translator/situation_id.json"
-        try:
-            with open(path_id, encoding=settings.ENCODING) as f:
-                file_data_ids = json.load(f)
-        except FileNotFoundError:
-            pass
-
-        for dai in elementos['hits']['hits']:
-            id_dai = dai["_id"]
-            iddai = id_dai.replace('-','')
-
-            if id_dai not in file_data_ids['ids']:
-                print('id_dai:::::')
-                print(id_dai)
-                file_data_ids['ids'].append(id_dai)
-
-                with open(path_id, "w", encoding=settings.ENCODING) as file_sent:
-                    json.dump(file_data_ids, file_sent)
-                time.sleep(1)
-
-                datasendServer = str(datetime.now(pytz.timezone(settings.ENV_TIMEZONE)).strftime("%Y-%m-%dT%H:%M:%S%z"))
-                # datasendServer = "2022-01-20T08:50:18-05:00"
-
-                situationRecord = []
-
-                penalty_type = dai["_source"]['payload']['penalty_type_id']
-                print('penalty_type')
-                print(penalty_type)
-                
-                # '10': 'AVERAGE SPEED ALTERATION' - 'VehicleObstruction' - 'situationVehicleObstruction
-                # '7': 'WRONG WAY DETECTION' - 'VehicleObstruction' - 'vehicleOnWrongCarriageway'
-                # '9': 'ILLEGAL STOP' - 'VehicleObstruction' - 'vehicleStuck',
-                # '12': 'TRAFFIC JAM' - 'AbnormalTraffic' - 'heavyTraffic'
-                # '11': 'ABANDONED OBJECT' - 'ObstructionType' - 'objectOnTheRoad'
-
-                # timestamp = "2024-08-20T19:34:13.953Z"
-                try:
-                    timestamp = dai["_source"]['@timestamp']
-                    dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
-                except ValueError:
-                    dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
-                dt_obj_local = dt_obj - timedelta(hours=5)
-                timestamp = dt_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
-
-                # loadDate = "2024-08-20T19:38:43.0233943Z"
-                loadDate = dai["_source"]['loadDate']
-                ld_obj = datetime.strptime(loadDate[:26], "%Y-%m-%dT%H:%M:%S.%f")
-                ld_obj_local = ld_obj - timedelta(hours=5)
-                loadDate = ld_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
-
-                publicationTime = datasendServer
-
-                data_general = {
-                    "_id": id_dai,
-                    "_version": "1",
-                    "situationRecordCreationTime": timestamp,
-                    "situationRecordVersionTime": loadDate,
-                    "probabilityOfOccurrence": {
-                        "value": 0
-                    },
-                    "validity": {
-                        "validityStatus": {
-                            "value": "active"
-                        },
-                        "validityTimeSpecification": {
-                            "overallStartTime": loadDate,
-                            "overallEndTime": loadDate,
-                            "validPeriod": [
-                                {  
-                                    "startOfPeriod": loadDate,
-                                    "endOfPeriod": loadDate,
-                                    "recurringTimePeriodOfDay": [{
-                                        "timePeriodOfDay": {
-                                                "startTimeOfPeriod": loadDate,
-                                                "endTimeOfPeriod": loadDate
-                                        }
-                                    }],
-                                    "recurringDayWeekMonthPeriod": [{
-                                        "commonInstanceOfDayWithinMonth": { 
-                                            "applicableDay": [{"value": 20 }],
-                                            "aplicableMonth": [{"value": 8 }]
-                                        }
-                                    }]
-                                }
-                            ]
+    while True:
+        print('dataset init')
+        if option == '3':
+            data_query = json.dumps({
+                "from": 0,
+                "size": 150,
+                "sort": [
+                    {
+                        "@timestamp": {
+                            "order": "desc"
                         }
-                    }
-                }
-
-                if penalty_type in [10, 7, 9]:
-                    option_enum = {
-                        10: 'slowVehicle',
-                        7: 'vehicleOnWrongCarriageway',
-                        9: 'vehicleStuck',
-                    }
-                    enum = option_enum[penalty_type]
-                    enumVehicle = {
-                        "title": "VehicleObstructionTypeEnum",
-                        "description": "Types of obstructions involving vehicles.",
-                        "type": "string",
-                        "enum": [
-                            enum
+                    },
+                    "_score"
+                ],
+                "track_total_hits": True,
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "boost": 2,
+                                        "format": "yyyy-MM-dd HH:mm:ss.SSSZZ",
+                                        "gte": "2024-08-20 23:31:08.382-0500",
+                                        "lte": "2025-08-30 23:31:08.382-0500"
+                                    }
+                                }
+                            },
                         ]
                     }
+                }
+            })
+            
+            headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
 
-                    data_general.update({
-                        "locationReference": "falta",
-                        "vehicleObstructionType": {
-                            "value": enumVehicle
-                        },
-                        "involvedVehicleType": {
-                            "value": 1
-                        }
-                    })
-                    situationRecord = [{
-                        'situationVehicleObstruction': data_general
-                    }]
+            obj_response = requests.post(
+                'http://20.99.184.101/elastic-api/neural.dai.output*/_search?format=json', 
+                auth=HTTPBasicAuth('elastic', 'Colombia1234$'),
+                data=data_query,
+                headers=headers
+            )
 
-                elif penalty_type == 12:
-                    data_general.update({
-                        "locationReference": "falta",
-                        "abnormalTrafficType": {
-                            "value": {
-                                "title": "AbnormalTrafficTypeEnum",
-                                "description": "Descriptive terms for abnormal traffic conditions specifically relating to the nature of the traffic movement, implying levels of service.",
-                                "type": "string",
-                                "enum": [
-                                    "heavyTraffic"
-                                ]
-                            },
-                        },
-                        "queueLenght": 0
-                    })
+            elementos = json.loads(obj_response.text)
+            
+            print('elementos hits')
+            file_data_ids = { 
+                "ids": []
+            }
+            path_id = f"{settings.BASE_DIR}/invias/src/translator/situation_id.json"
+            try:
+                with open(path_id, encoding=settings.ENCODING) as f:
+                    file_data_ids = json.load(f)
+            except FileNotFoundError:
+                pass
 
-                    situationRecord = [{
-                        'situationGeneralObstruction': data_general
-                    }]
-                elif penalty_type == 11:
+            for dai in elementos['hits']['hits']:
+                id_dai = dai["_id"]
+                iddai = id_dai.replace('-','')
+
+                if id_dai not in file_data_ids['ids']:
+                    print('id_dai:::::')
+                    print(id_dai)
+                    file_data_ids['ids'].append(id_dai)
+
+                    with open(path_id, "w", encoding=settings.ENCODING) as file_sent:
+                        json.dump(file_data_ids, file_sent)
+                    time.sleep(1)
+
+                    datasendServer = str(datetime.now(pytz.timezone(settings.ENV_TIMEZONE)).strftime("%Y-%m-%dT%H:%M:%S%z"))
+                    # datasendServer = "2022-01-20T08:50:18-05:00"
+
+                    situationRecord = []
+
+                    penalty_type = dai["_source"]['payload']['penalty_type_id']
+                    print('penalty_type')
+                    print(penalty_type)
                     
-                    data_general.update({
-                        "locationReference": "falta",
-                        "obstructionType": [
-                            {
+                    # '10': 'AVERAGE SPEED ALTERATION' - 'VehicleObstruction' - 'situationVehicleObstruction
+                    # '7': 'WRONG WAY DETECTION' - 'VehicleObstruction' - 'vehicleOnWrongCarriageway'
+                    # '9': 'ILLEGAL STOP' - 'VehicleObstruction' - 'vehicleStuck',
+                    # '12': 'TRAFFIC JAM' - 'AbnormalTraffic' - 'heavyTraffic'
+                    # '11': 'ABANDONED OBJECT' - 'ObstructionType' - 'objectOnTheRoad'
+
+                    # timestamp = "2024-08-20T19:34:13.953Z"
+                    try:
+                        timestamp = dai["_source"]['@timestamp']
+                        dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+                    except ValueError:
+                        dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+                    dt_obj_local = dt_obj - timedelta(hours=5)
+                    timestamp = dt_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+                    # loadDate = "2024-08-20T19:38:43.0233943Z"
+                    loadDate = dai["_source"]['loadDate']
+                    ld_obj = datetime.strptime(loadDate[:26], "%Y-%m-%dT%H:%M:%S.%f")
+                    ld_obj_local = ld_obj - timedelta(hours=5)
+                    loadDate = ld_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+                    publicationTime = datasendServer
+
+                    data_general = {
+                        "_id": id_dai,
+                        "_version": "1",
+                        "situationRecordCreationTime": timestamp,
+                        "situationRecordVersionTime": loadDate,
+                        "probabilityOfOccurrence": {
+                            "value": 0
+                        },
+                        "validity": {
+                            "validityStatus": {
+                                "value": "active"
+                            },
+                            "validityTimeSpecification": {
+                                "overallStartTime": loadDate,
+                                "overallEndTime": loadDate,
+                                "validPeriod": [
+                                    {  
+                                        "startOfPeriod": loadDate,
+                                        "endOfPeriod": loadDate,
+                                        "recurringTimePeriodOfDay": [{
+                                            "timePeriodOfDay": {
+                                                    "startTimeOfPeriod": loadDate,
+                                                    "endTimeOfPeriod": loadDate
+                                            }
+                                        }],
+                                        "recurringDayWeekMonthPeriod": [{
+                                            "commonInstanceOfDayWithinMonth": { 
+                                                "applicableDay": [{"value": 20 }],
+                                                "aplicableMonth": [{"value": 8 }]
+                                            }
+                                        }]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+
+                    if penalty_type in [10, 7, 9]:
+                        option_enum = {
+                            10: 'slowVehicle',
+                            7: 'vehicleOnWrongCarriageway',
+                            9: 'vehicleStuck',
+                        }
+                        enum = option_enum[penalty_type]
+                        enumVehicle = {
+                            "title": "VehicleObstructionTypeEnum",
+                            "description": "Types of obstructions involving vehicles.",
+                            "type": "string",
+                            "enum": [
+                                enum
+                            ]
+                        }
+
+                        data_general.update({
+                            "locationReference": "falta",
+                            "vehicleObstructionType": {
+                                "value": enumVehicle
+                            },
+                            "involvedVehicleType": {
+                                "value": 1
+                            }
+                        })
+                        situationRecord = [{
+                            'situationVehicleObstruction': data_general
+                        }]
+
+                    elif penalty_type == 12:
+                        data_general.update({
+                            "locationReference": "falta",
+                            "abnormalTrafficType": {
                                 "value": {
-                                    "title": "ObstructionTypeEnum",
-                                    "description": "Types of obstructions on the roadway.",
+                                    "title": "AbnormalTrafficTypeEnum",
+                                    "description": "Descriptive terms for abnormal traffic conditions specifically relating to the nature of the traffic movement, implying levels of service.",
                                     "type": "string",
                                     "enum": [
-                                        "objectOnTheRoad"
+                                        "heavyTraffic"
                                     ]
-                                }
+                                },
                             },
-                        ]
-                    })
-                    situationRecord = [{
-                        'situationAbnormalTraffic': data_general
-                    }]
+                            "queueLenght": 0
+                        })
 
-                payload = [
-                    {
-                        "_modelBaseVersion": "3",
-                        "situationPublication": {
-                            "lang": "en",
-                            "publicationTime": publicationTime,
-                            "publicationCreator": {
-                                "country": "CO",
-                                "nationalIdentifier": "INVIA"
-                            },
-                            "payloadPublicationExtension": {
-                                "datasendServer": datasendServer
-                            },
-                            "situation": [
+                        situationRecord = [{
+                            'situationGeneralObstruction': data_general
+                        }]
+                    elif penalty_type == 11:
+                        
+                        data_general.update({
+                            "locationReference": "falta",
+                            "obstructionType": [
                                 {
-                                    "id": iddai,
-                                    "headerInformation": {
-                                        "informationStatus": {
-                                            "value": "real"
-                                        }
-                                    },
-                                    "situationRecord": situationRecord
-                                }
+                                    "value": {
+                                        "title": "ObstructionTypeEnum",
+                                        "description": "Types of obstructions on the roadway.",
+                                        "type": "string",
+                                        "enum": [
+                                            "objectOnTheRoad"
+                                        ]
+                                    }
+                                },
                             ]
+                        })
+                        situationRecord = [{
+                            'situationAbnormalTraffic': data_general
+                        }]
+
+                    payload = [
+                        {
+                            "_modelBaseVersion": "3",
+                            "situationPublication": {
+                                "lang": "en",
+                                "publicationTime": publicationTime,
+                                "publicationCreator": {
+                                    "country": "CO",
+                                    "nationalIdentifier": "INVIA"
+                                },
+                                "payloadPublicationExtension": {
+                                    "datasendServer": datasendServer
+                                },
+                                "situation": [
+                                    {
+                                        "id": iddai,
+                                        "headerInformation": {
+                                            "informationStatus": {
+                                                "value": "real"
+                                            }
+                                        },
+                                        "situationRecord": situationRecord
+                                    }
+                                ]
+                            }
                         }
-                    }
-                ]
-                
-                type_publication = TYPE_PUBLICATION_DICT[option]
-                pending_data(type_publication, payload)
-                print('dataset pending_data forend')
-    
-    time.sleep(60 * settings.ENV_REQUEST_TIME)
+                    ]
+                    
+                    type_publication = TYPE_PUBLICATION_DICT[option]
+                    pending_data(type_publication, payload)
+                    print('dataset pending_data forend')
+        
+        time.sleep(60 * settings.ENV_REQUEST_TIME)
