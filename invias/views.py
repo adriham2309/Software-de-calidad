@@ -76,6 +76,8 @@ def start(request, option):
             'name': TYPE_PUBLICATION_DICT[option],
             'message': 'First time'
         }
+        Thread(target=dataset, args=(option,)).start()
+        time.sleep(10)
         Thread(target=run, args=(session,)).start()
 
     response['status'] = True
