@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-# from django.utils import timezone
+from django.utils import timezone as time_zone
 
 from invias.src.stateful.push.core import SessionManager
 from invias.src.stateful.push.cms import main_task_loop
@@ -64,7 +64,7 @@ def start(request, option):
     
     try:
         method_publication_val = Method_Publication.objects.get(name=TYPE_PUBLICATION_DICT[option])
-        if (timezone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
+        if (time_zone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
             print('Start service::::')
             Thread(target=dataset, args=(option,)).start()
             time.sleep(60)
