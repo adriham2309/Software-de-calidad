@@ -67,7 +67,7 @@ def start(request, option):
         if (timezone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
             print('Start service::::')
             Thread(target=dataset, args=(option,)).start()
-            time.sleep(10)
+            time.sleep(60)
             Thread(target=run, args=(session,)).start()
         else:
             print('You must wait to start the service again::::')
@@ -292,6 +292,7 @@ def open_log(request, option):
     return Response(response, status=status_response)
 
 def dataset(option):
+    print('dataset init')
     if option == '3':
         data_query = json.dumps({
             "from": 0,
@@ -333,7 +334,8 @@ def dataset(option):
         )
 
         elementos = json.loads(obj_response.text)
-
+        
+        print('elementos hits')
         file_data_ids = { 
             "ids": []
         }
@@ -363,6 +365,8 @@ def dataset(option):
                 situationRecord = []
 
                 penalty_type = dai["_source"]['payload']['penalty_type_id']
+                print('penalty_type')
+                print(penalty_type)
                 
                 # '10': 'AVERAGE SPEED ALTERATION' - 'VehicleObstruction' - 'situationVehicleObstruction
                 # '7': 'WRONG WAY DETECTION' - 'VehicleObstruction' - 'vehicleOnWrongCarriageway'
@@ -523,5 +527,6 @@ def dataset(option):
                 
                 type_publication = TYPE_PUBLICATION_DICT[option]
                 pending_data(type_publication, payload)
+                print('dataset pending_data forend')
     
     time.sleep(60 * settings.ENV_REQUEST_TIME)
