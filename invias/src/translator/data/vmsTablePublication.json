@@ -1,0 +1,201 @@
+{
+    "payload": [
+        {
+            "_modelBaseVersion": "3",
+            "vmsTablePublication": {
+                "lang": "en",
+                "publicationTime": "2018-10-11T15:00:00+02:00",
+                "publicationCreator": {
+                    "country": "co",
+                    "nationalIdentifier": "INVIA"
+                },
+                "headerInformation": {
+                    "informationStatus": {
+                        "value": "real"
+                    }
+                },
+                "_payloadPublicationExtension": {
+                    "datasendServer": "2022-01-20T08:50:18-05:00"
+                },
+                "vmsControllerTable": [
+                    {
+                        "_id": "5445",
+                        "_version": "6767",
+                        "vmsControllerTableIdentification": "VMS Controller table 1",
+                        "informationManager": {
+                            "country": "co",
+                            "nationalIdentifier": "Invias"
+                        },
+                        "vmsController": [
+                            {
+                                "_id": "54434535",
+                                "_version": "345",
+                                "numberOfVms": "1",
+                                "externalIdentifier": "35",
+                                "ipAddress": "172.18.1.100",
+                                "electronicAddress": "",
+                                "vms": [
+                                    {
+                                        "vmsIndex": "1",
+                                        "vms": {
+                                            "dedicatedUsage": "laneControlSystem",
+                                            "lansternsPresent": false,
+                                            "description": [
+                                                {
+                                                    "lang": "es",
+                                                    "value": "Vms Via bogota-guaduas"
+                                                }
+                                            ],
+                                            "owner": [
+                                                {
+                                                    "lang": "es",
+                                                    "value": "invias"
+                                                }
+                                            ],
+                                            "physicalSupport": "roadsideMounted",
+                                            "vmsType": "fullMatrixSign",
+                                            "vmsTypeCode": "MS4",
+                                            "dynamicallyConfigurable": true,
+                                            "displayHeight": "1.5",
+                                            "displayWidth": "2.7",
+                                            "heightAboveCarriageway": "2.5",
+                                            "vmsConfiguration": {
+                                                "numberOfDisplayAreas": 1,
+                                                "displayArea": [
+                                                    {
+                                                        "displayAreaIndex": "1",
+                                                        "displayArea": {
+                                                            "vmsSupplementaryPanelArea": {
+                                                                "supplementaryPictogramCodeListIdentifier": "from ISO 14823",
+                                                                "relatedPictogramArea": 2
+                                                            },
+                                                            "vmsPictogramDisplayArea": {
+                                                                "pictogramCodeListIdentifier": "from ISO 14823",
+                                                                "pictogramNumberOfColours": 5
+                                                            },
+                                                            "vmsTextDisplayArea": {
+                                                                "proportionalFont": true,
+                                                                "maxNumberOfCharacters": 20,
+                                                                "maxNumberOfRows": 3,
+                                                                "textCodeListIdentifier": "",
+                                                                "maxFontHeight": 10,
+                                                                "minFontHeight": 8,
+                                                                "maxFontWidth": 10,
+                                                                "minFontWidth": 8,
+                                                                "maxFontSpacing": 2,
+                                                                "minFontSpacing": 1,
+                                                                "sequenceVapable": true,
+                                                                "maxNumberOfSequentialPages": 1,
+                                                                "positionXAbsolute": {
+                                                                    "value": ""
+                                                                },
+                                                                "positionXRelativeToPrevious": {
+                                                                    "value": ""
+                                                                },
+                                                                "positionYAbsolute": {
+                                                                    "value": ""
+                                                                },
+                                                                "positionYRelativeToPrevious": {
+                                                                    "value": ""
+                                                                },
+                                                                "displayGeometry": {
+                                                                    "pixelsAcross": 5,
+                                                                    "pixelsDown": 1,
+                                                                    "displayHeight": "2.5",
+                                                                    "displayWidth": "2.5",
+                                                                    "positionX": "1.1",
+                                                                    "positionY": "0.3"
+                                                                },
+                                                                "overriddenLaneAssociation": [
+                                                                    {
+                                                                        "laneNumber": 2,
+                                                                        "laneUsage": {
+                                                                            "value": "rigthLane"
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "managedLogicalLocation": {
+                                                "managedLogicalLocation": {
+                                                    "values": [
+                                                        {
+                                                            "lang": "es",
+                                                            "value": "sección Villeta-Guaduas"
+                                                        }
+                                                    ]
+                                                },
+                                                "distanceFromLogicalLocation": "100",
+                                                "managedLocation": {
+                                                    "pointLocation": {
+                                                        "alertCPoint": [
+                                                            {
+                                                                "alertCMethod4Point": {
+                                                                    "alertCLocationCountryCode": "se",
+                                                                    "alertCLocationTableNumber": "33",
+                                                                    "alertCLocationTableVersion": "2.1",
+                                                                    "alertCDirection": {
+                                                                        "alertCDirectionCoded": {
+                                                                            "value": "positive"
+                                                                        },
+                                                                        "alertCAffectedDirection": {
+                                                                            "value": "both"
+                                                                        }
+                                                                    },
+                                                                    "alertCMethod4PrimaryPointLocation": {
+                                                                        "alertCLocation": {
+                                                                            "specificLocation": 1234
+                                                                        },
+                                                                        "offsetDistance": {
+                                                                            "offsetDistance": 30
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                "vmsLocation": {
+                                                    "pointLocation": {
+                                                        "alertCPoint": [
+                                                            {
+                                                                "alertCMethod4Point": {
+                                                                    "alertCLocationCountryCode": "se",
+                                                                    "alertCLocationTableNumber": "33",
+                                                                    "alertCLocationTableVersion": "2.1",
+                                                                    "alertCDirection": {
+                                                                        "alertCDirectionCoded": {
+                                                                            "value": "positive"
+                                                                        },
+                                                                        "alertCAffectedDirection": {
+                                                                            "value": "both"
+                                                                        }
+                                                                    },
+                                                                    "alertCMethod4PrimaryPointLocation": {
+                                                                        "alertCLocation": {
+                                                                            "specificLocation": 1234
+                                                                        },
+                                                                        "offsetDistance": {
+                                                                            "offsetDistance": 30
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

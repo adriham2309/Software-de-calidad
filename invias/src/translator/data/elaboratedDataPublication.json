@@ -1,0 +1,307 @@
+{
+    "payload": [
+        {
+            "_modelBaseVersion": "3",
+            "elaboratedDataPublication": {
+                "lang": "se",
+                "publicationTime": "2018-10-11T15:00:00+02:00",
+                "publicationCreator": {
+                    "country": "co",
+                    "nationalIdentifier": "INV"
+                },
+                "periodDefault": 300.0,
+                "timeDefault": "2018-10-11T15:00:00+02:00",
+                "headerInformation": {
+                    "confidentiality": {
+                        "value": "internalUse"
+                    },
+                    "allowedDeliveryChannel": [
+                        {
+                            "value": "safetyServices"
+                        },
+                        {
+                            "value": "vms"
+                        }
+                    ],
+                    "informationStatus": {
+                        "value": "real"
+                    }
+                },
+                "physicalQuantity": [
+                    {
+                        "roadTrafficDataSinglePhysicalQuantity": {
+                            "forecast": true,
+                            "measurementEquipmentTypeUsed": [
+                                {
+                                    "lang": "en",
+                                    "value": "loop"
+                                }
+                            ],
+                            "pertinentLocation": {
+                                "pointLocation": {
+                                    "alertCPoint": [
+                                        {
+                                            "alertCMethod4Point": {
+                                                "alertCLocationCountryCode": "se",
+                                                "alertCLocationTableNumber": "33",
+                                                "alertCLocationTableVersion": "2.1",
+                                                "alertCDirection": {
+                                                    "alertCDirectionCoded": {
+                                                        "value": "positive"
+                                                    },
+                                                    "alertCAffectedDirection": {
+                                                        "value": "both"
+                                                    }
+                                                },
+                                                "alertCMethod4PrimaryPointLocation": {
+                                                    "alertCLocation": {
+                                                        "specificLocation": 1234
+                                                    },
+                                                    "offsetDistance": {
+                                                        "offsetDistance": 30
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "basicData": {
+                                "roadTrafficDataTrafficStatus": {
+                                    "trafficTrendType": {
+                                        "value": "normal"
+                                    },
+                                    "trafficStatus": {
+                                        "trafficStatusValue": {
+                                            "value": "normal"
+                                        }
+                                    },
+                                    "measurementOrCalculationTime": {
+                                        "timeMeaning": "beginTime",
+                                        "timePrecision": "second",
+                                        "timeValue": "2018-10-11T15:00:00+02:00"
+                                    }
+                                },
+                                "roadTrafficDataTravelTimeData": {
+                                    "travelTimeTrendType": {
+                                        "value": "rising"
+                                    },
+                                    "travelTimeType": {
+                                        "value": "list of ways in which travel times are derived"
+                                    },
+                                    "vehicleType": {
+                                        "value": "car"
+                                    },
+                                    "travelTime": {
+                                        "duration": 300,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": "0.8",
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "freeFlowTravelTime": {
+                                        "duration": 300,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "nor an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": "0.8",
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "normallyExpectedTravelTime": {
+                                        "duration": 280,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": "0.8",
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "travelTimeDelay": {
+                                        "duration": 30,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "nor an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "freeFlowSpeed": {
+                                        "speed": 60
+                                    }
+                                },
+                                "roadTrafficDataTrafficFlow": {
+                                    "vehicleFlow": {
+                                        "vehicleFlowRate": "",
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "nor an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    }
+                                },
+                                "roadTrafficDataTrafficSpeed": {
+                                    "averageVehicleSpeed": {
+                                        "speed": 50,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "speedPercentile": [
+                                        {
+                                            "vehiclePercentage": {
+                                                "percentage": "50%"
+                                            },
+                                            "speedPercentile": {
+                                                "speed": 60,
+                                                "dataError": false,
+                                                "reasonForDataError": [
+                                                    {
+                                                        "lang": "en",
+                                                        "value": "not an error"
+                                                    }
+                                                ],
+                                                "accuracy": "80%",
+                                                "computationalMethod": {
+                                                    "value": "movingAverageOfSamples"
+                                                },
+                                                "numberOfIncompleteInputs": 0,
+                                                "numberOfInputValuesUsed": 0,
+                                                "smoothingFactor": "0.8",
+                                                "standardDeviation": "1.2",
+                                                "supplierCalculatedDataQuality": "80%"
+                                            }
+                                        }
+                                    ],
+                                    "normallyExpectedSpeed": {
+                                        "speed": 60,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "minimumSpeed": {
+                                        "speed": 60,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    },
+                                    "maximumSpeed": {
+                                        "speed": 60,
+                                        "dataError": false,
+                                        "reasonForDataError": [
+                                            {
+                                                "lang": "en",
+                                                "value": "not an error"
+                                            }
+                                        ],
+                                        "accuracy": "80%",
+                                        "computationalMethod": {
+                                            "value": "movingAverageOfSamples"
+                                        },
+                                        "numberOfIncompleteInputs": 0,
+                                        "numberOfInputValuesUsed": 0,
+                                        "smoothingFactor": 0.8,
+                                        "standardDeviation": 1.2,
+                                        "supplierCalculatedDataQuality": "80%"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

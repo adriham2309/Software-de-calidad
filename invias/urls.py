@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.urls import path
 from invias import views
+from invias.src.connection import one
 
 urlpatterns = [
     path('start/<str:option>', views.start),
@@ -24,4 +25,6 @@ urlpatterns = [
     path('state_error/<str:option>', views.state_error),
     path('detail_method/<str:option>', views.detail_method),
     path('open_log/<str:option>', views.open_log),
+    path('elastic', one.elastic),
+    path('load_data/<str:option>', one.load_data),
 ]

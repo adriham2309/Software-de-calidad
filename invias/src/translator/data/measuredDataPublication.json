@@ -1,0 +1,71 @@
+{
+    "payload": {
+        "_modelBaseVersion": "3",
+        "roadTrafficDataMeasuredDataPublication": {
+            "headerInformation": {
+                "informationStatus": {
+                    "value": "real"
+                }
+            },
+            "lang": "en",
+            "measurementSiteTableReference": [
+                {
+                    "_id": "0000",
+                    "_version": "1",
+                    "targetClass": "MeasurementSiteTable"
+                }
+            ],
+            "publicationCreator": {
+                "country": "co",
+                "nationalIdentifier": "INVIA"
+            },
+            "publicationTime": "2022-04-04T09:06:50",
+            "siteMeasurements": [
+                {
+                    "measurementSiteReference": {
+                        "_id": "SN-DAI-AEROPARQUE-P1-L",
+                        "_version": "1",
+                        "targetClass": "measurementSiteTable"
+                    },
+                    "measurementTimeDefault": {
+                        "timeValue": "2022-04-04T09:05:00.000Z"
+                    },
+                    "physicalQuantity": [
+                        {
+                            "index": 0,
+                            "physicalQuantity": {
+                                "roadTrafficDataSinglePhysicalQuantity": {
+                                    "basicData": {
+                                        "measurementOrCalculationTime": {
+                                            "timePrecision": "minute"
+                                        },
+                                        "trafficData": {
+                                            "vehicleCaracteristics": {
+                                                "vehicleType": "carOrLightVehicle"
+                                            }
+                                        },
+                                        "trafficFlow": {
+                                            "vehicleFlowValue": {
+                                                "vehicleFlowRate": "16"
+                                            }
+                                        },
+                                        "trafficHeadway": {
+                                            "_averageDistanceHeadway": {
+                                                "distance": "16666"
+                                            }
+                                        },
+                                        "trafficSpeed": {
+                                            "averageVehicleSpeed": {
+                                                "speed": "10.4"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,67 @@
+{
+    "payload": [
+        {
+            "_modelBaseVersion": "3",
+            "measurementSiteTablePublication": {
+                "lang": "en",
+                "publicationTime": "2018-10-11T15:00:00+02:00",
+                "publicationCreator": {
+                    "country": "co",
+                    "nationalIdentifier": "INVIA"
+                },
+                "headerInformation": {
+                    "informationStatus": {
+                        "value": "real"
+                    }
+                },
+                "_payloadPublicationExtension": {
+                    "datasendServer": "2022-01-20T08:50:18-05:00"
+                },
+                "measurementSiteTable": [
+                    {
+                        "id": "1",
+                        "version": "0",
+                        "measurementSite": [
+                            {
+                                "id": "69-197661",
+                                "version": "0",
+                                "measurementEquipmentReference": "COMPUTER_ID",
+                                "measurementSpecificCharacteristics": [
+                                    {
+                                        "index": 1,
+                                        "measurementSpecificCharacteristics": {
+                                            "specificMeasurementValueType": {
+                                                "value": "individualVehicleMeasurements"
+                                            },
+                                            "specificLane": [
+                                                {
+                                                    "laneNumber": "4",
+                                                    "laneUsage": {
+                                                        "value": "expressLane"
+                                                    }
+                                                }
+                                            ],
+                                            "measurementSide": {
+                                                "value": "clockwise"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "measurementSiteLocation": {
+                                    "locationReferencingPointLocation": {
+                                        "pointByCoordinates": {
+                                            "pointCoordinates": {
+                                                "latitude": 5.56015,
+                                                "longitude": -74.6251
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

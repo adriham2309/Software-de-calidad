@@ -1,0 +1,339 @@
+{
+    "payload": [
+        {
+            "_modelBaseVersion": "3",
+            "vmsPublication": {
+                "lang": "en",
+                "publicationTime": "2018-10-11T15:00:00+02:00",
+                "publicationCreator": {
+                    "country": "co",
+                    "nationalIdentifier": "INVIA"
+                },
+                "headerInformation": {
+                    "informationStatus": {
+                        "value": "real"
+                    }
+                },
+                "_payloadPublicationExtension": {
+                    "datasendServer": "2022-01-20T08:50:18-05:00"
+                },
+                "vmsControllerStatus": [
+                    {
+                        "vmsControllerTableReference": {
+                            "_id": "345345",
+                            "_version": "53453",
+                            "targetClass": "vmsControllerTable"
+                        },
+                        "vmsControllerReference": {
+                            "_id": "345345",
+                            "_version": "53453",
+                            "targetClass": "vmsController"
+                        },
+                        "statusUpdateTime": "2018-10-11T15:00:00+02:00",
+                        "informationManagerOverride": {
+                            "country": "co",
+                            "nationalIdentifier": "INV"
+                        },
+                        "vmsStatus": [
+                            {
+                                "vmsStatus": {
+                                    "flashingLightsOn": false,
+                                    "remainingPowerCapacity": 500,
+                                    "statusUpdateTime": "2018-10-11T15:00:00+02:00",
+                                    "sequencingInterval": 30,
+                                    "workingStatus": {
+                                        "value": "active"
+                                    },
+                                    "vmsDynamicConfiguration": {
+                                        "numberOfDisplayAreas": 4,
+                                        "displayArea": [
+                                            {
+                                                "displayArea": {
+                                                    "vmsSupplementaryPanelArea": {
+                                                        "supplementaryPictogramCodeListIdentifier": "from ISO 14823",
+                                                        "relatedPictogramArea": 2
+                                                    },
+                                                    "vmsPictogramDisplayArea": {
+                                                        "pictogramCodeListIdentifier": "from ISO 14823",
+                                                        "pictogramNumberOfColours": 5
+                                                    },
+                                                    "vmsTextDisplayArea": {
+                                                        "proportionalFont": true,
+                                                        "maxNumberOfCharacters": 20,
+                                                        "maxNumberOfRows": 3,
+                                                        "textCodeListIdentifier": "",
+                                                        "maxFontHeight": 10,
+                                                        "minFontHeight": 8,
+                                                        "maxFontWidth": 10,
+                                                        "minFontWidth": 8,
+                                                        "maxFontSpacing": 2,
+                                                        "minFontSpacing": 1,
+                                                        "sequenceVapable": true,
+                                                        "maxNumberOfSequentialPages": 1,
+                                                        "positionXAbsolute": {
+                                                            "value": ""
+                                                        },
+                                                        "positionXRelativeToPrevious": {
+                                                            "value": ""
+                                                        },
+                                                        "positionYAbsolute": {
+                                                            "value": ""
+                                                        },
+                                                        "positionYRelativeToPrevious": {
+                                                            "value": ""
+                                                        },
+                                                        "displayGeometry": {
+                                                            "pixelsAcross": 5,
+                                                            "pixelsDown": 1,
+                                                            "displayHeight": "2.5",
+                                                            "displayWidth": "2.5",
+                                                            "positionX": "1.1",
+                                                            "positionY": "0.3"
+                                                        },
+                                                        "overriddenLaneAssociation": [
+                                                            {
+                                                                "laneNumber": 2,
+                                                                "laneUsage": {
+                                                                    "value": "rigthLane"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                },
+                                                "displayAreaIndex": 2
+                                            }
+                                        ]
+                                    },
+                                    "vmsMessage": [
+                                        {
+                                            "vmsMessage": {
+                                                "associatedTrafficManagementPlan": "any",
+                                                "messageSetBy": {
+                                                    "values": [
+                                                        {
+                                                            "lang": "es",
+                                                            "value": "vxdfg"
+                                                        }
+                                                    ]
+                                                },
+                                                "setBySystem": true,
+                                                "reasonForSetting": {
+                                                    "values": [
+                                                        {
+                                                            "lang": "es",
+                                                            "value": "vxdfg"
+                                                        }
+                                                    ]
+                                                },
+                                                "codeReasonForSetting": {
+                                                    "value": ""
+                                                },
+                                                "messageInformationType": [
+                                                    {
+                                                        "value": "message"
+                                                    }
+                                                ],
+                                                "primarySetting": false,
+                                                "mareNostrumCompliant": false,
+                                                "timeLastSet": "2018-10-11T15: 00: 00+02: 00",
+                                                "requestedBy": {
+                                                    "values": [
+                                                        {
+                                                            "lang": "es",
+                                                            "value": "MT"
+                                                        }
+                                                    ]
+                                                },
+                                                "relatedSituation": [
+                                                    {
+                                                        "targetClass": "Situation",
+                                                        "_id": "23424",
+                                                        "_version": "3455"
+                                                    }
+                                                ],
+                                                "relatedSituationRecord": [
+                                                    {
+                                                        "targetClass": "SituationRecord",
+                                                        "_id": "23426",
+                                                        "_version": "3453"
+                                                    }
+                                                ],
+                                                "distanceFromClosestSituationRecord": "300.7",
+                                                "sequencingInterval": 20,
+                                                "displayAreaSettings": [
+                                                    {
+                                                        "displayAreaSettings": {
+                                                            "vmsTextDisplay": {
+                                                                "textCode": "10",
+                                                                "textImageUrl": "https://www.mintransporte.gov.co/imagen_prueba.png",
+                                                                "textLine": [
+                                                                    {
+                                                                        "textLine": {
+                                                                            "textLine": "textline",
+                                                                            "lineLanguage": "es",
+                                                                            "lineColour": {
+                                                                                "value": "blue"
+                                                                            },
+                                                                            "lineFlashing": false,
+                                                                            "lineHtml": "",
+                                                                            "isExactTextOnSign": true,
+                                                                            "textInformationType": [
+                                                                                {
+                                                                                    "value": "situationInformation"
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        "lineIndex": 1
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "vmsSupplementaryPictogram": "",
+                                                            "vmsSupplementaryText": "",
+                                                            "vmsPictogramDisplay": "",
+                                                            "vmsMultiPageDisplay": ""
+                                                        },
+                                                        "displayAreaIndex": 1
+                                                    }
+                                                ],
+                                                "image": {
+                                                    "imageData": "AF5",
+                                                    "imageFormat": {
+                                                        "value": "png"
+                                                    }
+                                                }
+                                            },
+                                            "messageIndex": 1
+                                        }
+                                    ],
+                                    "vmsLocationOverride": {
+                                        "locationReferencingPointLocation": {
+                                            "PointLocation": {
+                                                "alertCPoint": [
+                                                    {
+                                                        "alertCMethod4Point": {
+                                                            "alertCLocationCountryCode": "se",
+                                                            "alertCLocationTableNumber": "33",
+                                                            "alertCLocationTableVersion": "2.1",
+                                                            "alertCDirection": {
+                                                                "alertCDirectionCoded": {
+                                                                    "value": "positive"
+                                                                },
+                                                                "alertCAffectedDirection": {
+                                                                    "value": "both"
+                                                                }
+                                                            },
+                                                            "alertCMethod4PrimaryPointLocation": {
+                                                                "alertCLocation": {
+                                                                    "specificLocation": 1234
+                                                                },
+                                                                "offsetDistance": {
+                                                                    "offsetDistance": 30
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "managedLogicalLocationOverride": {
+                                        "managedLogicalLocation": {
+                                            "values": [
+                                                {
+                                                    "lang": "es",
+                                                    "value": "seccióndelacarretera"
+                                                }
+                                            ]
+                                        },
+                                        "distanceFromLogicalLocation": 100,
+                                        "managedLocation": {
+                                            "locationReferencingPointLocation": {
+                                                "PointLocation": {
+                                                    "alertCPoint": [
+                                                        {
+                                                            "alertCMethod4Point": {
+                                                                "alertCLocationCountryCode": "se",
+                                                                "alertCLocationTableNumber": "33",
+                                                                "alertCLocationTableVersion": "2.1",
+                                                                "alertCDirection": {
+                                                                    "alertCDirectionCoded": {
+                                                                        "value": "positive"
+                                                                    },
+                                                                    "alertCAffectedDirection": {
+                                                                        "value": "both"
+                                                                    }
+                                                                },
+                                                                "alertCMethod4PrimaryPointLocation": {
+                                                                    "alertCLocation": {
+                                                                        "specificLocation": 1234
+                                                                    },
+                                                                    "offsetDistance": {
+                                                                        "offsetDistance": 30
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "vmsFault": [
+                                        {
+                                            "vmsFault": {
+                                                "faultIdentifier": "dasd",
+                                                "faultDescription": {
+                                                    "values": [
+                                                        {
+                                                            "lang": "es",
+                                                            "value": "dañogeneral"
+                                                        }
+                                                    ]
+                                                },
+                                                "faultCreationTime": "2018-10-11T15: 00: 00+02: 00",
+                                                "faultLastUpdateTime": "2018-10-11T15: 00: 00+02: 00",
+                                                "faultImpactSeverity": {
+                                                    "value": "low"
+                                                },
+                                                "faultUrgencyToRectify": {
+                                                    "value": "normal"
+                                                },
+                                                "manufacturerFaultCode": "100"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "vmsIndex": 10
+                            }
+                        ],
+                        "vmsControllerFault": [
+                            {
+                                "vmsControllerFault": {
+                                    "value": "sdsf"
+                                },
+                                "faultIdentifier": "dasd",
+                                "faultDescription": {
+                                    "values": [
+                                        {
+                                            "lang": "es",
+                                            "value": "dañogeneral"
+                                        }
+                                    ]
+                                },
+                                "faultCreationTime": "2018-10-11T15: 00: 00+02: 00",
+                                "faultLastUpdateTime": "2018-10-11T15: 00: 00+02: 00",
+                                "faultImpactSeverity": {
+                                    "value": "low"
+                                },
+                                "faultUrgencyToRectify": {
+                                    "value": "normal"
+                                },
+                                "manufacturerFaultCode": "100"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
