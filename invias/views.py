@@ -375,20 +375,33 @@ def dataset(option):
                     # '12': 'TRAFFIC JAM' - 'AbnormalTraffic' - 'heavyTraffic'
                     # '11': 'ABANDONED OBJECT' - 'ObstructionType' - 'objectOnTheRoad'
 
-                    # timestamp = "2024-08-20T19:34:13.953Z"
-                    try:
-                        timestamp = dai["_source"]['@timestamp']
-                        dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
-                    except ValueError:
-                        dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
-                    dt_obj_local = dt_obj - timedelta(hours=5)
-                    timestamp = dt_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
 
+                    # timestamp = "2024-08-20T19:34:13.953Z"
+                    timestamp = dai["_source"]['@timestamp']
                     # loadDate = "2024-08-20T19:38:43.0233943Z"
                     loadDate = dai["_source"]['loadDate']
-                    ld_obj = datetime.strptime(loadDate[:26], "%Y-%m-%dT%H:%M:%S.%f")
-                    ld_obj_local = ld_obj - timedelta(hours=5)
-                    loadDate = ld_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+                    try:
+                        try:
+                            dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+                        except ValueError:
+                            dt_obj = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+                        dt_obj_local = dt_obj - timedelta(hours=5)
+                        timestamp = dt_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
+                    except:
+                        pass
+
+                    try:
+                        try:
+                            ld_obj = datetime.strptime(loadDate[:26], "%Y-%m-%dT%H:%M:%S.%f")
+                        except ValueError:
+                            loadDate = loadDate[:26] + "Z"
+                            ld_obj = datetime.strptime(loadDate, "%Y-%m-%dT%H:%M:%S.%f")
+                        ld_obj_local = ld_obj - timedelta(hours=5)
+                        loadDate = ld_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
+                    except:
+                        pass
+                    
 
                     publicationTime = datasendServer
 
