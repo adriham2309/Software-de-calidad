@@ -7,6 +7,7 @@ from django.utils import timezone as time_zone
 from invias.src.stateful.push.core import SessionManager
 from invias.src.stateful.push.cms import main_task_loop
 from invias.src.translator.bogota_translator import pending_data, pending_to_store
+from invias.src.translator.data import SituationPublication, MeasuredPublication
 
 from threading import Thread
 
@@ -66,8 +67,12 @@ def start(request, option):
         method_publication_val = Method_Publication.objects.get(name=TYPE_PUBLICATION_DICT[option])
         if (time_zone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
             print('Start service::::')
-            Thread(target=dataset, args=(option,)).start()
-            time.sleep(60)
+            # Thread(target=dataset, args=(option,)).start()
+            # time.sleep(60)
+
+            # SituationPublication()
+            # Thread(target=MeasuredPublication, args=()).start()
+            # time.sleep(60)
             Thread(target=run, args=(session,)).start()
         else:
             print('You must wait to start the service again::::')
@@ -76,8 +81,9 @@ def start(request, option):
             'name': TYPE_PUBLICATION_DICT[option],
             'message': 'First time'
         }
-        Thread(target=dataset, args=(option,)).start()
-        time.sleep(60)
+        # SituationPublication()
+        # Thread(target=MeasuredPublication, args=()).start()
+        # time.sleep(60)
         Thread(target=run, args=(session,)).start()
 
     response['status'] = True
@@ -316,7 +322,7 @@ def dataset(option):
                                     "@timestamp": {
                                         "boost": 2,
                                         "format": "yyyy-MM-dd HH:mm:ss.SSSZZ",
-                                        "gte": "2024-08-20 23:31:08.382-0500",
+                                        "gte": "2024-08-21 13:41:08.382-0500",
                                         "lte": "2025-08-30 23:31:08.382-0500"
                                     }
                                 }
@@ -330,7 +336,7 @@ def dataset(option):
 
             obj_response = requests.post(
                 'http://20.99.184.101/elastic-api/neural.dai.output*/_search?format=json', 
-                auth=HTTPBasicAuth('elastic', 'Colombia1234$'),
+                auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
                 data=data_query,
                 headers=headers
             )
@@ -526,7 +532,10 @@ def dataset(option):
                             }
                         }
                     ]
-                    
+
+                    print('payload::::::::::::::::')
+                    print(payload)
+
                     type_publication = TYPE_PUBLICATION_DICT[option]
                     pending_data(type_publication, payload)
                     print('dataset pending_data forend')

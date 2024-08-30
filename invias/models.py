@@ -59,3 +59,18 @@ class Store(models.Model):
 
     def __str__(self):
         return self.status
+
+class Device(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class SiteReferenceDevice(models.Model):
+    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    version = models.IntegerField(default=0)
+    json_data = models.TextField()
+    state = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.version

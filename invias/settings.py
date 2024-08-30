@@ -182,6 +182,10 @@ UNSENT_PUB_PATH = UNSENT_PUB_DIR + '/pending_publications.json' #.format(datetim
 
 TOKEN_ERROR = "asdfghj"
 
+ELASTIC_URL = "http://20.99.184.101"
+ELASTIC_USER = "elastic"
+ELASTIC_PASS = "Colombia1234$"
+
 """
 ENDPOINTS
 """
