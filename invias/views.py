@@ -7,7 +7,7 @@ from django.utils import timezone as time_zone
 from invias.src.stateful.push.core import SessionManager
 from invias.src.stateful.push.cms import main_task_loop
 from invias.src.translator.bogota_translator import pending_data, pending_to_store
-from invias.src.translator.data import SituationPublication, MeasuredPublication
+from invias.src.translator.data import SituationPublication, MeasuredAndElaboratedPublication
 
 from threading import Thread
 
@@ -50,6 +50,18 @@ TYPE_PUBLICATION_DICT = {
     '5': settings.VMS_PUBLICATION,
     '6': settings.VMS_TABLE_PUBLICATION,
 }
+
+# Create your views here.
+@api_view(['GET'])
+def group_data_test(request):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    MeasuredAndElaboratedPublication()
+
+    response['status'] = True
+    status_response = status.HTTP_200_OK
+    return Response(response, status=status_response)
 
 # Create your views here.
 @api_view(['POST'])

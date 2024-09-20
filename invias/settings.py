@@ -176,6 +176,7 @@ ENV_PROCESS_TIME_SECONDS = 5
 
 # Encoding
 ENCODING ='latin-1'
+ENCODING_2 ='UTF-8'
 UNSENT_PUB_DIR = "store"
 PENDING_PUB_DIR = "pending"
 UNSENT_PUB_PATH = UNSENT_PUB_DIR + '/pending_publications.json' #.format(datetime.today().date())
