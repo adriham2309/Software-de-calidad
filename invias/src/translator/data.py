@@ -424,8 +424,7 @@ def MeasuredAndElaboratedPublication():
     current_date = datetime.now()
 
     # Generar la fecha y hora (tiempo configurado de rango) minutos antes
-    # date_before = current_date - timedelta(minutes=settings.ENV_REQUEST_TIME)
-    date_before = current_date - timedelta(minutes=10)
+    date_before = current_date - timedelta(minutes=settings.ENV_REQUEST_TIME)
 
     # Formato: yyyy-MM-dd HH:mm:ss.SSSZZ -- 2024-08-30 12:00:08.382-0500
     date_format = "%Y-%m-%d %H:%M:%S.%f%z"
