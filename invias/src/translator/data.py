@@ -518,6 +518,12 @@ def MeasuredAndElaboratedPublication():
 
         number_vehicles = 0
 
+        # estado del trafico
+        traffic_low = 10
+        traffic_half = 20
+        traffic_high = 30
+        state_traffic = 'low'
+
         # ----- MeasureddData ----- 
         max_speed = 80
         list_max_speed = []
@@ -578,9 +584,18 @@ def MeasuredAndElaboratedPublication():
         # Falta terminar los métodos para este proceso 
         print('Promedio de velocidad')
         print(average_speed)
+        ElaboratedPayload(publicationTime, measurementSiteTableReference, 1, average_speed)
 
         print('Numero de vehiculos')
         print(number_vehicles)
+        ElaboratedPayload(publicationTime, measurementSiteTableReference, 2, number_vehicles)
+
+        print('Estado del trafico')
+        if number_vehicles >= traffic_high:
+            state_traffic = 'high'
+        elif number_vehicles >= traffic_half:
+            state_traffic = 'half'
+        print(state_traffic)
 
         print('---------------------------MeasureddData--------------------------')
         # ----- MeasureddData ----- 
@@ -651,11 +666,13 @@ def GroupDataDevice(elementos, file_data_ids):
 
     return grouped_data
 
-def ElaboratedPayload(publicationTime):
+def ElaboratedPayload(publicationTime, measurementSiteTableReference, type_event, value):
     """ Payload - En el caso de ElaboratedData """ 
+    # type_event - 1: promedio de velocidad, 2: cantidad de vehiculos, 3: flujo(ejemplo: bajo, medio o alto)
+
     payload = [
         {
-            "_modelBaseVersion": "3",
+            "modelBaseVersionG": "3",
             "elaboratedDataPublication": {
                 "lang": "se",
                 "publicationTime": publicationTime,
@@ -663,6 +680,7 @@ def ElaboratedPayload(publicationTime):
                     "country": settings.ENV_COUNTRY_CODE,
                     "nationalIdentifier": settings.ENV_NATIONAL_IDENTIFIER
                 },
+                "measurementSiteTableReference": measurementSiteTableReference,
                 "periodDefault": 300.0,
                 "timeDefault": "2018-10-11T15:00:00+02:00",
                 "headerInformation": {
