@@ -63,6 +63,53 @@ def group_data_test(request):
     status_response = status.HTTP_200_OK
     return Response(response, status=status_response)
 
+@api_view(['POST'])
+def start_process(request):
+    response = {'status': False}
+    status_response = status.HTTP_400_BAD_REQUEST
+
+    # Trae los datos
+    Thread(target=main_data_task, args=()).start()
+    time.sleep(60)
+
+    option_list = ['1','2','3']
+
+    for option in option_list:
+        print('type_publication_dict:::::::')
+        print(TYPE_PUBLICATION_DICT[option])
+
+        session = SessionManager()
+        session.typepublication = TYPE_PUBLICATION_DICT[option]
+        
+        try:
+            method_publication_val = Method_Publication.objects.get(name=TYPE_PUBLICATION_DICT[option])
+            if (time_zone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
+                print('Start service::::')
+                Thread(target=run, args=(session,)).start()
+            else:
+                print('You must wait to start the service again::::')
+        except:
+            response['method'] = {
+                'name': TYPE_PUBLICATION_DICT[option],
+                'message': 'First time'
+            }
+            Thread(target=run, args=(session,)).start()
+        time.sleep(30)
+
+    response['status'] = True
+    status_response = status.HTTP_200_OK
+    return Response(response, status=status_response)
+
+def main_data_task():
+    while True:
+        try:
+            MeasuredAndElaboratedPublication()
+            time.sleep(30)
+            SituationPublication()
+        except Exception as error:
+            print('Error MeasuredAndElaboratedPublication', error)
+        time.sleep(60 * settings.ENV_REQUEST_TIME)
+
 # Create your views here.
 @api_view(['POST'])
 def start(request, option):
@@ -79,12 +126,6 @@ def start(request, option):
         method_publication_val = Method_Publication.objects.get(name=TYPE_PUBLICATION_DICT[option])
         if (time_zone.now() - method_publication_val.verification_date).total_seconds() > (60*settings.ENV_REQUEST_TIME):
             print('Start service::::')
-            # Thread(target=dataset, args=(option,)).start()
-            # time.sleep(60)
-
-            # SituationPublication()
-            # Thread(target=MeasuredPublication, args=()).start()
-            # time.sleep(60)
             Thread(target=run, args=(session,)).start()
         else:
             print('You must wait to start the service again::::')
@@ -93,9 +134,6 @@ def start(request, option):
             'name': TYPE_PUBLICATION_DICT[option],
             'message': 'First time'
         }
-        # SituationPublication()
-        # Thread(target=MeasuredPublication, args=()).start()
-        # time.sleep(60)
         Thread(target=run, args=(session,)).start()
 
     response['status'] = True

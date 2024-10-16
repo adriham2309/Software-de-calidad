@@ -584,11 +584,11 @@ def MeasuredAndElaboratedPublication():
         # Falta terminar los métodos para este proceso 
         print('Promedio de velocidad')
         print(average_speed)
-        ElaboratedPayload(publicationTime, measurementSiteTableReference, 1, average_speed)
+        ElaboratedPayload(publicationTime, measurementSiteTableReference, data_group, 1, average_speed)
 
         print('Numero de vehiculos')
         print(number_vehicles)
-        ElaboratedPayload(publicationTime, measurementSiteTableReference, 2, number_vehicles)
+        ElaboratedPayload(publicationTime, measurementSiteTableReference, data_group, 2, number_vehicles)
 
         print('Estado del trafico')
         if number_vehicles >= traffic_high:
@@ -666,9 +666,52 @@ def GroupDataDevice(elementos, file_data_ids):
 
     return grouped_data
 
-def ElaboratedPayload(publicationTime, measurementSiteTableReference, type_event, value):
+def ElaboratedPayload(publicationTime, measurementSiteTableReference, group_data, type_event, value):
     """ Payload - En el caso de ElaboratedData """ 
     # type_event - 1: promedio de velocidad, 2: cantidad de vehiculos, 3: flujo(ejemplo: bajo, medio o alto)
+
+    laneNumber = group_data['attributes']['lane_id']
+    # directionPurpose values:
+    if group_data['payload']['direction'] == '1':
+        directionPurpose = "inbound"
+    else:
+        directionPurpose = "outbound"
+
+    basicData = BasicPhysicalQuantityForType(group_data, publicationTime, type_event, value)
+
+    physicalQuantity = [
+        {
+            "index": 0,
+            "physicalQuantity": {
+                "roaSinglePhysicalQuantity": {
+                    "forecast": False,
+                    "pertinentLocation": {
+                        "locPointLocation": {
+                            "supplementaryPositionalDescription": {
+                                "directionPurpose": {
+                                    "value": directionPurpose
+                                },
+                                "carriageway": [
+                                    {
+                                        "carriageway": {
+                                            "value": "serviceRoad"
+                                        },
+                                        "lane": [{
+                                            "laneNumber": laneNumber
+                                        }]
+                                    }
+                                ]
+                            }
+                        },
+                        "locLocationByReference": {
+                            "predefinedLocationReference": measurementSiteTableReference
+                        }
+                    },
+                    "basicData": basicData
+                }
+            }
+        }
+    ]
 
     payload = [
         {
@@ -699,17 +742,92 @@ def ElaboratedPayload(publicationTime, measurementSiteTableReference, type_event
                         "value": "real"
                     }
                 },
-                "physicalQuantity": [
-                    {
-                        "roadTrafficDataSinglePhysicalQuantity": {
-
-                        }
-                    }
-                ]
+                "physicalQuantity": physicalQuantity
             }
         }
     ]
+    # print('payload::::::::::::::::::::')
+    # print(payload)
     pending_data(settings.ELABORATED_DATA_PUBLICATION, payload)
+
+def BasicPhysicalQuantityForType(group_data, publicationTime, type_event, value):
+    basicData = {}
+    
+    dict_vehicle_type = {
+        "MAQ. AGRICOLA":"agriculturalVehicle",
+        "BUS":"bus",
+        "AUTOMOVIL":"car",
+        "MAQ. CONSTRUCCION O MINERA":"constructionOrMaintenanceVehicle",
+        "CAMIONETA":"fourWheelDrive",
+        "TRACTOCAMION":"heavyGoodsVehicleWithTrailer",
+        "CAMION":"heavyVehicle",
+        "MICROBUS":"minibus",
+        "MOTOCICLETA":"motorcycle",
+        "MOTOTRICICLO":"motorcycleWithSideCar",
+        "MOTOCARRO":"threeWheeledVehicle",
+    }
+
+    vehicleType = "Other"
+    if group_data["runt"]["class"] in dict_vehicle_type:
+        vehicleType = dict_vehicle_type[group_data["runt"]["class"]]
+
+    # Invias_velocidad_por_categoria_carril
+    if type_event == 1:
+        basicData = {
+            "roadTrafficSpeed": {
+                "measurementOrCalculationTime": publicationTime,
+                "averageVehicleSpeed": {
+                    "speed": value,
+                    "accuracy": 80,
+                    "computationalMethod": "arithmeticAverageOfSamplesBasedOnAFixedNumberOfSamples",
+                    "supplierCalculatedDataQuality": 80
+                },
+                "forVehiclesWithCharacteristicsOf": {
+                    "vehicleyType" : [
+                        {
+                            "value": vehicleType
+                        }
+                    ]
+                }
+            }
+        }
+
+    # Invias_flujo_por_categoria_carril
+    elif type_event == 2:
+        basicData = {
+            "roaTrafficFlow": {
+                "measurementOrCalculationTime": publicationTime,
+                "vehicleFlow": {
+                    "vehicleFlowRate": value,
+                    "accuracy": 80,
+                    "supplierCalculatedDataQuality": 80
+                },
+                "forVehiclesWithCharacteristicsOf": {
+                    "vehicleyType" : [
+                        {
+                            "value": vehicleType
+                        }
+                    ]
+                }
+            }
+        }
+
+    # Invias_estado_por_categoria_carril
+    elif type_event == 3:
+        basicData = {
+            "roaTrafficStatus": {
+                "measurementOrCalculationTime": publicationTime,
+                "trafficStatus": {
+                    "trafficStatusValue": {
+                        "value": "heavy"
+                    },
+                    "accuracy": 80,
+                    "supplierCalculatedDataQuality": 80
+                }
+            }
+        }
+
+    return basicData
 
 def MeasurePayload(publicationTime, measurementSiteTableReference, list_data, type_data):
     """ Payload - En el caso de MeasuredData """
