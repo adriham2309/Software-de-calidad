@@ -23,7 +23,7 @@ def SitePublicationDevice(id_name, specificLane, measurementSide, pointCoordinat
     # measurementSide
     # pointCoordinates - latitude
     # pointCoordinates - longitude
-    
+
     version = 0
     data_key = [
         "specificLane", "measurementSide", "pointCoordinates", "reference"
@@ -42,7 +42,7 @@ def SitePublicationDevice(id_name, specificLane, measurementSide, pointCoordinat
         site_device_val = SiteReferenceDevice.objects.get(device__name=id_name, state=True)
         version = site_device_val.version
         site_json = json.loads(site_device_val.json_data)
-        
+
         update_site = False
         try:
             for key in data_key:
@@ -64,7 +64,7 @@ def SitePublicationDevice(id_name, specificLane, measurementSide, pointCoordinat
             site_device_new.save()
 
             send_site = True
-        
+
     except SiteReferenceDevice.DoesNotExist:
         device_val = Device()
         device_val.name = id_name
@@ -81,7 +81,7 @@ def SitePublicationDevice(id_name, specificLane, measurementSide, pointCoordinat
     if send_site:
         datasendServer = str(datetime.now(pytz.timezone(settings.ENV_TIMEZONE)).strftime("%Y-%m-%dT%H:%M:%S%z"))
         publicationTime = datasendServer
-        
+
         payload = [
             {
                 "_modelBaseVersion": "3",
@@ -152,8 +152,8 @@ def SitePublicationDevice(id_name, specificLane, measurementSide, pointCoordinat
 
     locationReference = {
         "targetClass": "measurementSiteTable",
-        "_version": str(version),
-        "_id": id_name
+        "versionG": str(version),
+        "idG": id_name
     }
 
     # locationReference = {
@@ -200,18 +200,18 @@ def SituationPublication():
             }
         }
     })
-    
+
     headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
 
     obj_response = requests.post(
-        settings.ELASTIC_URL + '/elastic-api/neural.dai.output*/_search?format=json', 
+        settings.ELASTIC_URL + '/elastic-api/neural.dai.output*/_search?format=json',
         auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
         data=data_query,
         headers=headers
     )
 
     elementos = json.loads(obj_response.text)
-    file_data_ids = { 
+    file_data_ids = {
         "ids": []
     }
     date_name = str(datetime.now().strftime("%d%m%Y"))
@@ -243,7 +243,7 @@ def SituationPublication():
             penalty_type = dai["_source"]['payload']['penalty_type_id']
             print('penalty_type')
             print(penalty_type)
-            
+
             # '10': 'AVERAGE SPEED ALTERATION' - 'VehicleObstruction' - 'situationVehicleObstruction
             # '7': 'WRONG WAY DETECTION' - 'VehicleObstruction' - 'vehicleOnWrongCarriageway'
             # '9': 'ILLEGAL STOP' - 'VehicleObstruction' - 'vehicleStuck',
@@ -276,7 +276,7 @@ def SituationPublication():
                 loadDate = ld_obj_local.strftime("%Y-%m-%dT%H:%M:%S%z")
             except:
                 pass
-            
+
 
             publicationTime = datasendServer
 
@@ -296,7 +296,7 @@ def SituationPublication():
                         "overallStartTime": loadDate,
                         "overallEndTime": loadDate,
                         "validPeriod": [
-                            {  
+                            {
                                 "startOfPeriod": loadDate,
                                 "endOfPeriod": loadDate,
                                 "recurringTimePeriodOfDay": [{
@@ -306,7 +306,7 @@ def SituationPublication():
                                     }
                                 }],
                                 "recurringDayWeekMonthPeriod": [{
-                                    "commonInstanceOfDayWithinMonth": { 
+                                    "commonInstanceOfDayWithinMonth": {
                                         "applicableDay": [{"value": 20 }],
                                         "aplicableMonth": [{"value": 8 }]
                                     }
@@ -469,18 +469,18 @@ def MeasuredAndElaboratedPublication():
             }
         }
     })
-    
+
     headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
 
     obj_response = requests.post(
-        settings.ELASTIC_URL + '/elastic-api/neural.plates.output*/_search?format=json', 
+        settings.ELASTIC_URL + '/elastic-api/neural.plates.output*/_search?format=json',
         auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
         data=data_query,
         headers=headers
     )
 
     elementos = json.loads(obj_response.text)
-    file_data_ids = { 
+    file_data_ids = {
         "ids": []
     }
     date_name = str(datetime.now().strftime("%d%m%Y"))
@@ -505,12 +505,12 @@ def MeasuredAndElaboratedPublication():
         json.dump(file_data_ids, file_sent)
 
     """ REALIZAR LOS DIFERENTES CONDICIONALES PARA EL ANÁLISIS DE LA INFORMACIÓN """
-    
+
     for group in grouped_data:
         min_confidence = 60
         max_speed_validate = 200
 
-        # ----- ElaboratedData ----- 
+        # ----- ElaboratedData -----
         # Velocidad Promedio
         total_speed = 0
         amount_speed = 0
@@ -524,7 +524,7 @@ def MeasuredAndElaboratedPublication():
         traffic_high = 30
         state_traffic = 'low'
 
-        # ----- MeasureddData ----- 
+        # ----- MeasureddData -----
         max_speed = 80
         list_max_speed = []
 
@@ -537,7 +537,7 @@ def MeasuredAndElaboratedPublication():
 
             # Omitir la información con baja confianza o velocidades irregulares (muy altas o el valor -1 "no pudo obtener la velocidad")
             if float(confidence) >= min_confidence and float(speed) < max_speed_validate and speed != "-1":
-                    
+
                 total_speed += float(speed)
                 amount_speed += 1
 
@@ -581,7 +581,7 @@ def MeasuredAndElaboratedPublication():
 
         print('---------------------------ElaboratedData--------------------------')
         # ----- ElaboratedData -----
-        # Falta terminar los métodos para este proceso 
+        # Falta terminar los métodos para este proceso
         print('Promedio de velocidad')
         print(average_speed)
         ElaboratedPayload(publicationTime, measurementSiteTableReference, data_group, 1, average_speed)
@@ -598,7 +598,7 @@ def MeasuredAndElaboratedPublication():
         print(state_traffic)
 
         print('---------------------------MeasureddData--------------------------')
-        # ----- MeasureddData ----- 
+        # ----- MeasureddData -----
         print('Cantidad de vehiculos velocidad máxima')
         print(len(list_max_speed))
 
@@ -637,7 +637,7 @@ def GroupDataDevice(elementos, file_data_ids):
     })
 
     # Iterar sobre cada ítem en los datos
-    
+
     for item in elementos:
         id_result = item["_id"]
         # Validación de procesamiento.
@@ -845,7 +845,8 @@ def MeasurePayload(publicationTime, measurementSiteTableReference, list_data, ty
         physicalQuantityItem = {
             "index": 0,
             "physicalQuantity": {
-                "roadTrafficDataSinglePhysicalQuantity": {
+                "roaSinglePhysicalQuantity": {
+                    "forecast": False,
                     "pertinentLocation": {
                         "pointLocation": {
                             "supplementaryPositionalDescription": {
@@ -872,8 +873,9 @@ def MeasurePayload(publicationTime, measurementSiteTableReference, list_data, ty
 
     payload = [
         {
-            "_modelBaseVersion": "3",
-            "roadTrafficDataMeasuredDataPublication": {
+            "modelBaseVersionG": "3",
+            "versionG": "3.5",
+            "roaMeasuredDataPublication": {
                 "headerInformation": {
                     "informationStatus": {
                         "value": "real"
@@ -925,7 +927,7 @@ def BasicDataForType(type_data, publicationTime, vehicle_data):
     vehicleType = "Other"
     if vehicle_data["runt"]["class"] in dict_vehicle_type:
         vehicleType = dict_vehicle_type[vehicle_data["runt"]["class"]]
-    
+
     basicData = {
         "roadIndividualVehicleDataValues": {
             "measurementOrCalculationTime": publicationTime,
@@ -949,7 +951,7 @@ def BasicDataForType(type_data, publicationTime, vehicle_data):
     if type_data == 1:
         basicData['roadIndividualVehicleDataValues']['speed'] = vehicle_data['attributes']['speed']
         # Valores temporales:
-        basicData['roadIndividualVehicleDataValues']['individualVehicleDataValuesExtensionG']['pointMaximumSpeed'] = 80 
+        basicData['roadIndividualVehicleDataValues']['individualVehicleDataValuesExtensionG']['pointMaximumSpeed'] = 80
         basicData['roadIndividualVehicleDataValues']['individualVehicleDataValuesExtensionG']['linealMaximumSpeed'] = 80
 
     elif type_data == 2:
@@ -958,7 +960,7 @@ def BasicDataForType(type_data, publicationTime, vehicle_data):
             "insurancePolicyStatus": vehicle_data['rndc']['SoatExpired']
         }
         basicData['roadIndividualVehicleDataValues']['individualVehicleDataValuesExtensionG']['extensionSoat'] = extensionSoat
-    
+
     elif type_data == 3:
         extensionVehicleInspection = {
             "expirationDate": vehicle_data['rndc']['RtmExpiration'],
