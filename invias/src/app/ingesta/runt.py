@@ -16,7 +16,7 @@ def getDataRunt(placa):
     for row in rows:
         # record = {}
         for i, column in enumerate(cur.description):
-            print(column)
+            # print(column)
             if(column.name == 'EJES'):
                 dataNew['axles'] = row[i]
             if(column.name == 'EJES_CALCULADO'):

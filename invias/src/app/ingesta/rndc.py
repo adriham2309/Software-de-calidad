@@ -34,7 +34,7 @@ def getDataRndc(placa, fecha):
         headers=headers
     )
     data = json.loads(obj_response.text)
-    print(data)
+    # print(data)
     dataNew = {}
     if(data['Alertas'] != ''):
         alertas = json.loads(data['Alertas'])
@@ -55,7 +55,7 @@ def transformDataRndc(dataAlert, dataInfo):
     dataNew = {}
     for rowA in dataAlert:
         for key, value in rowA.items():
-            print(key, value)
+            # print(key, value)
             if(key == 'ALERTA011'):
                 dataNew['SoatExpired'] = value
             if(key == 'ALERTA012'):

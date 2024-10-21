@@ -4,6 +4,7 @@ from rest_framework import status
 from invias.src.app.ingesta.elastic import updateElastic
 from invias.src.app.ingesta.runt import getDataRunt
 from invias.src.app.ingesta.rndc import getDataRndc
+from threading import Thread
 
 @api_view(['GET'])
 def updateData(request):
@@ -17,7 +18,10 @@ def updateData(request):
     # response['data'] = getDataElastic()
     date = '2024-07-05T04:59:48.4'
     plate = 'KDN265'
-    response['data'] = updateElastic(urlElastic, dateInit, dateEnd)
+    
+    # updateElastic(urlElastic, dateInit, dateEnd)
+    Thread(target=updateElastic, args=(urlElastic, dateInit, dateEnd)).start()
+
     # response['runt'] = getDataRunt(plate)
     # response['rndc'] = getDataRndc(plate, date)
     return Response(response, status=status_response)

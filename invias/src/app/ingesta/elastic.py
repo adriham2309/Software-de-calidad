@@ -9,7 +9,7 @@ from invias.src.app.ingesta.rndc import getDataRndc
 def updateElastic(urlElastic, dateInit, dateEnd):
     from_num = 0
     # size_num = 10000
-    size_num = 10
+    size_num = 100
     run_state = True
     
     search_after = None
@@ -86,34 +86,48 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                     loadDate = source["loadDate"]
                     plate = payload["plate"]
 
-                    # Proceso de actualización.
-                    runt = getDataRunt(plate)
-                    rndc = getDataRndc(plate, loadDate)
-                    data_update = {
-                        "doc": {
-                            "rndc": rndc,
-                            "runt": {
-                                "class": runt['class'],
-                            },
-                            "runtCustom": runt
+                    try:
+                        # Proceso de actualización.
+                        runt = getDataRunt(plate)
+                        rndc = getDataRndc(plate, loadDate)
+
+                        data_update = {
+                            "doc": {
+                                "rndc": rndc,
+                                "runtCustom": runt
+                            }
                         }
-                    }
-                    url_update_index = _index + "/_update/" + _id
-                    update_response = requests.post(
-                        urlElastic + url_update_index,
-                        auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
-                        data=data_update,
-                        headers=headers
-                    )
-                    update_response_text = json.loads(update_response.text)
-                    print('update_response_text:_::_:')
-                    print(update_response_text)
-                    
+
+                        if 'class' in runt:
+                            data_update["doc"]["runt"] = {
+                                "class": runt["class"],
+                            }
+
+                        url_update_index = _index + "/_update/" + _id
+
+                        # print('data_update::::::::::::')
+                        # print(data_update)
+                        # print(url_update_index)
+
+                        data_query_update = json.dumps(data_update)
+                        update_response = requests.post(
+                            urlElastic + url_update_index,
+                            auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
+                            data=data_query_update,
+                            headers=headers
+                        )
+                        update_response_text = json.loads(update_response.text)
+                        # print('update_response_text:_::_:')
+                        # print(update_response_text)
+                    except Exception as e:
+                        print('data_update_error:::::::::::::::::::::')
+                        print(e)
+                                
                 last_item = elementos['hits']['hits'][-1]
-                print('last_item:_::_:')
+                print('LAST_ITEM:::::::::::::::::::::::::::')
                 search_after = last_item['sort']
                 print(search_after)
                 
         except Exception as e:
-            print('error:::::::::::::::::::::::::::::::')
+            print('while_error:::::::::::::::::::::::::::::::')
             print(e)
