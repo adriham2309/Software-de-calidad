@@ -5,6 +5,7 @@ from django.conf import settings
 
 from invias.src.app.ingesta.runt import getDataRunt
 from invias.src.app.ingesta.rndc import getDataRndc
+from invias.src.app.ingesta.tpdjson import getDataJson
 
 def updateElastic(urlElastic, dateInit, dateEnd):
     from_num = 0
@@ -102,6 +103,29 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                             data_update["doc"]["runt"] = {
                                 "class": runt["class"],
                             }
+                            
+                        if "CombinedConfigurationCode" in rndc:
+                            key = runt["class"] + "-" + runt["axles"] + "-" + rndc["CombinedConfigurationCode"]
+                        else:
+                            key = runt["class"] + "-" + runt["axles"]
+                            
+                        tpd = getDataJson(key)
+                        
+                        if 'TPDCategory.id' in tpd:
+                            data_update["doc"]["TPDCategory"] = {
+                                "id": tpd["TPDCategory.id"],
+                                "class": tpd["TPDCategory"]
+                            }
+                            data_update["doc"]["inviasCustom"] = {
+                                "id": tpd["inviasCustom.id"],
+                                "class": tpd["TPDCategory"],
+                                "categoryId": tpd["TPDCategory.id"]
+                            }
+                            data_update["doc"]["invias"] = {
+                                "id": tpd["invias.id"],
+                                "class": tpd["invias.class"],
+                                "categoryId": tpd["TPDCategory.id"]
+                            }
 
                         url_update_index = _index + "/_update/" + _id
 
@@ -117,6 +141,7 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                             headers=headers
                         )
                         update_response_text = json.loads(update_response.text)
+                        
                         # print('update_response_text:_::_:')
                         # print(update_response_text)
                     except Exception as e:
