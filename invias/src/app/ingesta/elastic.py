@@ -9,7 +9,7 @@ from invias.src.app.ingesta.tpdjson import getDataJson
 
 def updateElastic(urlElastic, dateInit, dateEnd):
     from_num = 0
-    size_num = 1000
+    size_num = 100
     run_state = True
     
     search_after = None
@@ -85,6 +85,9 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                     num_update += 1
                     print('num_update:::::::::::::::::::::::::::')
                     print(num_update)
+
+                    print('_id________')
+                    print(_id)
 
                     _index = item["_index"]
                     _id = item["_id"]
