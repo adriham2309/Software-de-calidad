@@ -85,12 +85,13 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                     num_update += 1
                     print('num_update:::::::::::::::::::::::::::')
                     print(num_update)
+                    
+                    _index = item["_index"]
+                    _id = item["_id"]
 
                     print('_id________')
                     print(_id)
 
-                    _index = item["_index"]
-                    _id = item["_id"]
                 
                     source = item.get("_source", {})
                     payload = source.get("payload", {})
