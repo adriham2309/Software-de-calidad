@@ -9,8 +9,7 @@ from invias.src.app.ingesta.tpdjson import getDataJson
 
 def updateElastic(urlElastic, dateInit, dateEnd):
     from_num = 0
-    # size_num = 10000
-    size_num = 100
+    size_num = 1000
     run_state = True
     
     search_after = None
@@ -42,8 +41,8 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                                 "@timestamp": {
                                     "boost": 2,
                                     "format": "yyyy-MM-dd HH:mm:ss.SSSZZ",
-                                    "gte": dateInit + " 00:00:00.000-0500",
-                                    "lte": dateEnd + " 23:59:59.999-0500"
+                                    "gte": dateInit,
+                                    "lte": dateEnd
                                 }
                             }
                         },
@@ -73,11 +72,20 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                 run_state = False
                 print('FiNISHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')
             else:
+                print(':::::::::::::::::::::::::::----------------------------------------------------------:::::::::::::::::::::::::::')
+                print('Cantidad consultada:::::::::::::::')
+                print(len(elementos['hits']['hits']))
+
                 from_num += 1
-                print('from_num:::::::::::::::::::::::::::::::')
+                print('from_num while:::::::::::::::::::::::::::::::')
                 print(from_num)
 
+                num_update = 0
                 for item in elementos['hits']['hits']:
+                    num_update += 1
+                    print('num_update:::::::::::::::::::::::::::')
+                    print(num_update)
+
                     _index = item["_index"]
                     _id = item["_id"]
                 
@@ -99,39 +107,50 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                             }
                         }
 
+                        tpd = {}
                         if 'class' in runt:
                             data_update["doc"]["runt"] = {
                                 "class": runt["class"],
                             }
+                            if 'load_capacity' in runt:
+                                data_update["doc"]["runt"]["load_capacity"] = runt["load_capacity"]
+                            if 'axles' in runt:
+                                data_update["doc"]["runt"]["axles"] = runt["axles"]
                             
-                        if "CombinedConfigurationCode" in rndc:
-                            key = runt["class"] + "-" + runt["axles"] + "-" + rndc["CombinedConfigurationCode"]
-                        else:
-                            key = runt["class"] + "-" + runt["axles"]
-                            
-                        tpd = getDataJson(key)
-                        
-                        if 'TPDCategory.id' in tpd:
-                            data_update["doc"]["TPDCategory"] = {
-                                "id": tpd["TPDCategory.id"],
-                                "class": tpd["TPDCategory"]
-                            }
-                            data_update["doc"]["inviasCustom"] = {
-                                "id": tpd["inviasCustom.id"],
-                                "class": tpd["TPDCategory"],
-                                "categoryId": tpd["TPDCategory.id"]
-                            }
-                            data_update["doc"]["invias"] = {
-                                "id": tpd["invias.id"],
-                                "class": tpd["invias.class"],
-                                "categoryId": tpd["TPDCategory.id"]
-                            }
+                            if "CombinedConfigurationCode" in rndc:
+                                key = str(runt["class"]) + "-" + str(runt["axles"]) + "-" + str(rndc["CombinedConfigurationCode"])
+                            else:
+                                key = str(runt["class"]) + "-" + str(runt["axles"])
+                            key3 = runt["class"]
+                                
+                            tpd = getDataJson(key, key3)
+
+                            normal_name = ['VOLQUETA', 'CAMION', 'TRACTOCAMION']
+                            inviasCustomClass = tpd["invias.class"]
+                            if str(runt["class"]) in normal_name:
+                                inviasCustomClass = str(runt["class"])
+
+                            if 'TPDCategory.id' in tpd:
+                                data_update["doc"]["TPDCategory"] = {
+                                    "id": tpd["TPDCategory.id"],
+                                    "class": tpd["TPDCategory"]
+                                }
+                                data_update["doc"]["inviasCustom"] = {
+                                    "id": tpd["inviasCustom.id"],
+                                    "class": inviasCustomClass,
+                                    "categoryId": tpd["TPDCategory.id"]
+                                }
+                                data_update["doc"]["invias"] = {
+                                    "id": tpd["invias.id"],
+                                    "class": tpd["invias.class"],
+                                    "categoryId": tpd["TPDCategory.id"]
+                                }
 
                         url_update_index = _index + "/_update/" + _id
 
-                        # print('data_update::::::::::::')
-                        # print(data_update)
-                        # print(url_update_index)
+                        print('data_update::::::::::::')
+                        print(data_update)
+                        print(url_update_index)
 
                         data_query_update = json.dumps(data_update)
                         update_response = requests.post(
@@ -142,8 +161,8 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                         )
                         update_response_text = json.loads(update_response.text)
                         
-                        # print('update_response_text:_::_:')
-                        # print(update_response_text)
+                        print('update_response_text:_::_:')
+                        print(update_response_text)
                     except Exception as e:
                         print('data_update_error:::::::::::::::::::::')
                         print(e)

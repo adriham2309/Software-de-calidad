@@ -10,18 +10,17 @@ from threading import Thread
 def updateData(request):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    # urlElastic = 'http://20.99.184.101/elastic-api/'
-    urlElastic = 'http://20.150.153.184/elastic-api/'
-    dateInit = "2024-08-01"
-    dateEnd = "2024-08-01"
-    # Llamar a la consulta del elastic
-    # response['data'] = getDataElastic()
-    date = '2024-07-05T04:59:48.4'
-    plate = 'KDN265'
     
-    # updateElastic(urlElastic, dateInit, dateEnd)
+    # QA
+    urlElastic = 'http://20.150.153.184/elastic-api/' 
+
+    # Prod
+    # urlElastic = 'http://20.99.184.101/elastic-api/'
+    
+    dateInit = "2024-08-01 00:00:00.000-0500"
+    dateEnd = "2024-08-01 23:59:59.999-0500"
+    
+    # Llamar a la consulta del elastic
     Thread(target=updateElastic, args=(urlElastic, dateInit, dateEnd)).start()
 
-    # response['runt'] = getDataRunt(plate)
-    # response['rndc'] = getDataRndc(plate, date)
     return Response(response, status=status_response)
