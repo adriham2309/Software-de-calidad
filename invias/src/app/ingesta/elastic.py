@@ -6,6 +6,7 @@ from django.conf import settings
 from invias.src.app.ingesta.runt import getDataRunt
 from invias.src.app.ingesta.rndc import getDataRndc
 from invias.src.app.ingesta.tpdjson import getDataJson
+import psycopg2
 
 def updateElastic(urlElastic, dateInit, dateEnd):
     from_num = 0
@@ -16,7 +17,9 @@ def updateElastic(urlElastic, dateInit, dateEnd):
     # search_after = [1727482008280, 2.0000024]
 
     while run_state:
-        print('while:::::::::::::::::::::::::::::::')
+        print(' ')
+        print('::::::::::::::::::::::::::::::: while :::::::::::::::::::::::::::::::')
+        print(' ')
         json_data = {
             "size": size_num,
             "sort": [
@@ -71,26 +74,33 @@ def updateElastic(urlElastic, dateInit, dateEnd):
             if len(elementos['hits']['hits']) == 0:
                 run_state = False
                 print('FiNISHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')
+                print(' ')
             else:
-                print(':::::::::::::::::::::::::::----------------------------------------------------------:::::::::::::::::::::::::::')
-                print('Cantidad consultada:::::::::::::::')
-                print(len(elementos['hits']['hits']))
+                print('--------------------------------------------------------------------------------')
+                # print('Cantidad consultada:', len(elementos['hits']['hits']))
+                # print(len(elementos['hits']['hits']))
 
                 from_num += 1
-                print('from_num while:::::::::::::::::::::::::::::::')
-                print(from_num)
+                # print('from_num while: ', from_num)
+                # print(from_num)
 
                 num_update = 0
+                conn = psycopg2.connect(
+                    host="psql-prod-001.postgres.database.azure.com",
+                    database="cco_lite",
+                    user="adminazure@psql-prod-001",
+                    password="UsPt7eKmGQ"
+                )
                 for item in elementos['hits']['hits']:
                     num_update += 1
-                    print('num_update:::::::::::::::::::::::::::')
-                    print(num_update)
+                    print('--------------------------------------------------------------------------------')
+                    print('num_update:', ((from_num*size_num)-size_num)+num_update)
                     
                     _index = item["_index"]
                     _id = item["_id"]
 
-                    print('_id________')
-                    print(_id)
+                    # print('_id________')
+                    # print(_id)
 
                 
                     source = item.get("_source", {})
@@ -101,8 +111,10 @@ def updateElastic(urlElastic, dateInit, dateEnd):
 
                     try:
                         # Proceso de actualización.
-                        runt = getDataRunt(plate)
+                        runt = getDataRunt(plate, conn)
+                        print('---> runt: OK --->', runt)
                         rndc = getDataRndc(plate, loadDate)
+                        print('---> rndc: OK --->', rndc)
 
                         data_update = {
                             "doc": {
@@ -151,10 +163,10 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                                 }
 
                         url_update_index = _index + "/_update/" + _id
-
-                        print('data_update::::::::::::')
-                        print(data_update)
-                        print(url_update_index)
+                        # logTxt('info_'+dateInit, str(((from_num*size_num)-size_num)+num_update) + " update_index: "+ url_update_index)
+                        print('data_update_index:', url_update_index)
+                        # print(data_update)
+                        # print(url_update_index)
 
                         data_query_update = json.dumps(data_update)
                         update_response = requests.post(
@@ -165,17 +177,28 @@ def updateElastic(urlElastic, dateInit, dateEnd):
                         )
                         update_response_text = json.loads(update_response.text)
                         
-                        print('update_response_text:_::_:')
-                        print(update_response_text)
+                        print('update_response_text:', update_response_text)
+                        # print("update_response_text")
                     except Exception as e:
                         print('data_update_error:::::::::::::::::::::')
+                        logTxt('error_'+dateInit, "Update_index: " + _index + "/_update/" + _id)
                         print(e)
-                                
+                   
+                conn.close()             
                 last_item = elementos['hits']['hits'][-1]
-                print('LAST_ITEM:::::::::::::::::::::::::::')
                 search_after = last_item['sort']
-                print(search_after)
+                print(' ')
+                logTxt('last_item_'+dateInit, str(search_after))
+                print('LAST_ITEM:', search_after)
+                # print(search_after)
                 
         except Exception as e:
             print('while_error:::::::::::::::::::::::::::::::')
+            logTxt('error_'+dateInit, str(e))
             print(e)
+            
+    
+def logTxt(name, text):
+    fileInfo = open(name+".txt","a+")
+    fileInfo.write(text + "\n")
+    fileInfo.close()

@@ -1,12 +1,12 @@
-import psycopg2
+# import psycopg2
 
-def getDataRunt(placa):
-    conn = psycopg2.connect(
-        host="psql-prod-001.postgres.database.azure.com",
-        database="cco_lite",
-        user="adminazure@psql-prod-001",
-        password="UsPt7eKmGQ"
-    )
+def getDataRunt(placa, conn):
+    # conn = psycopg2.connect(
+    #     host="psql-prod-001.postgres.database.azure.com",
+    #     database="cco_lite",
+    #     user="adminazure@psql-prod-001",
+    #     password="UsPt7eKmGQ"
+    # )
     cur = conn.cursor()
     cur.execute('SELECT * FROM "RUNT".runt_data WHERE "PLACA" = %s', (placa,))
     rows = cur.fetchall()
@@ -30,6 +30,6 @@ def getDataRunt(placa):
                 dataNew['class'] = row[i]
             # record[column.name] = row[i]
         # records.append(record)
-    conn.close()
+    # conn.close()
     
     return dataNew
