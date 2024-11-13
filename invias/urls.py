@@ -17,7 +17,7 @@ Including another URLconf
 from django.urls import path
 from invias import views
 from invias.src.connection import one
-from invias.src.app.ingesta import app
+from invias.src.app.ingesta import app, clean
 
 urlpatterns = [
     path('start/<str:option>', views.start),
@@ -31,4 +31,5 @@ urlpatterns = [
     path('elastic', one.elastic),
     path('load_data/<str:option>', one.load_data),
     path('ingesta/update_data', app.updateData),
+    path('ingesta/clean_data', clean.cleanData),
 ]
