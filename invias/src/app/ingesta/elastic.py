@@ -229,14 +229,18 @@ def updateDate(item, conn, urlElastic, dateInit):
         print(e)
 
 def updateElasticQuery(data_update, urlElastic):
-    data_query_update = json.dumps(data_update)
-    headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
-    update_response = requests.post(
-        urlElastic,
-        auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
-        data=data_query_update,
-        headers=headers
-    )
-    update_response_text = json.loads(update_response.text)
-    
-    print('update_response_text:', update_response_text)
+    try:
+        data_query_update = json.dumps(data_update)
+        headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
+        update_response = requests.post(
+            urlElastic,
+            auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
+            data=data_query_update,
+            headers=headers
+        )
+        update_response_text = json.loads(update_response.text)
+        print('update_response_text:', update_response_text)
+    except Exception as e:
+        print('data_update_error:::::::::::::::::::::')
+        logTxt('error_update_elastic_query', urlElastic)
+        print(e)
