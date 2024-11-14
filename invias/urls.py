@@ -31,5 +31,6 @@ urlpatterns = [
     path('elastic', one.elastic),
     path('load_data/<str:option>', one.load_data),
     path('ingesta/update_data', app.updateData),
+    path('ingesta/update_runt/<str:start>/<str:end>', app.updateRunt),
     path('ingesta/clean_data', clean.cleanData),
 ]
