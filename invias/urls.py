@@ -32,6 +32,8 @@ urlpatterns = [
     path('load_data/<str:option>', one.load_data),
     path('ingesta/update_data', app.updateData),
     path('ingesta/update_runt/<str:start>/<str:end>', app.updateRunt),
-    path('ingesta/clean_data', clean.cleanData),
+    path('ingesta/clean_data/<str:device>', clean.cleanData),
+    path('ingesta/pasar_data/<str:device>', clean.pasarData),
     path('ingesta/update_img/<str:device>', app.updateImg),
+    path('ingesta/validar_faltantes/<str:device>', app.validarFaltantes),
 ]

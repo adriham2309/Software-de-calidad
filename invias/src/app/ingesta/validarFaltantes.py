@@ -3,10 +3,8 @@ import json
 import requests
 from django.conf import settings
 import pyodbc
-import os.path
-from invias.src.app.ingesta.updateImgAzure import updateImgAzure
 
-def updateImgElastic(urlElastic, device, path, database):
+def validarFaltantesLocalmente(urlElastic, device):
     size_num = 10000
     run_state = True
     
@@ -39,6 +37,7 @@ def updateImgElastic(urlElastic, device, path, database):
                 server = 'localhost'
                 username = ''
                 password = ''
+                database = 'ANPR'+device
 
                 try:
                     # Crear conexión
@@ -50,7 +49,6 @@ def updateImgElastic(urlElastic, device, path, database):
                         f"PWD={password};"
                         "TrustServerCertificate=yes;"
                     )
-                    # print("Conexión exitosa")
                     
                     # Crear un cursor para ejecutar consultas
                     cursor = connection.cursor()
@@ -58,53 +56,11 @@ def updateImgElastic(urlElastic, device, path, database):
                     for item in elementos['hits']['hits']:
 
                         # Ejecutar una consulta de prueba
-                        # print('item', item)
                         incidence_id = item["_source"]['attributes']['incidence_id']
-                        number_plate = item["_source"]['payload']['plate']
                         # print('incidence_id', incidence_id)
-                        # print('number_plate', number_plate)
-                        cursor.execute("SELECT ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID WHERE r.INCIDENCEID = ? AND r.NumberPlate = ?", (incidence_id, number_plate))
-                        columns = [column[0] for column in cursor.description]  
-                        rows = cursor.fetchall()
-                        results = [dict(zip(columns, row)) for row in rows]
-                        loadImageFull = None
-                        loadImagePlate = None
-                        for result in results:
-                            imageSource = result['ImageSource']
-                            imageSource = imageSource.replace('c:', path)
-                            cutImageSource = result['CutImageSource']
-                            cutImageSource = cutImageSource.replace('c:', path)
-                            # print('ImageSource',result['ImageSource'])
-                            # print('CutImageSource',result['CutImageSource'])
-                            if os.path.exists(imageSource):
-                                loadImageFull = updateImgAzure(imageSource, incidence_id)
-                            if os.path.exists(cutImageSource):
-                                loadImagePlate = updateImgAzure(cutImageSource, incidence_id)
-                                
-                            if loadImageFull and loadImagePlate:
-                                data_update = {
-                                    "doc": {
-                                        "payload": {
-                                            "img_path": loadImageFull,
-                                            "img_path_plate": loadImagePlate
-                                        },
-                                        "attributes": {
-                                            "avi_file_name": loadImageFull
-                                        }
-                                    }
-                                }
-                                
-                                url_update_index = item["_index"] + "/_update/" + item["_id"]
-                                data_query_update = json.dumps(data_update)
-                                headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
-                                update_response = requests.post(
-                                    urlElastic + url_update_index,
-                                    auth=HTTPBasicAuth(settings.ELASTIC_USER, settings.ELASTIC_PASS),
-                                    data=data_query_update,
-                                    headers=headers
-                                )
-                                update_response_text = json.loads(update_response.text)
-                                print('update_response_text:', update_response_text)
+                        cursor.execute("UPDATE RESULTS SET Send_Server = 6 WHERE INCIDENCEID = ?", (incidence_id))
+                        # cursor.execute("SELECT ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID WHERE r.INCIDENCEID = ? AND r.NumberPlate = ?", (incidence_id))
+                        cursor.commit()
                                 
                         # print('----------------------------------------------------')
                     last_item = elementos['hits']['hits'][-1]
@@ -127,7 +83,7 @@ def updateImgElastic(urlElastic, device, path, database):
             print(e)
     
     
-def query(size_num, device):
+def query(size_num, id):
     return {
         "from": 0,
         "size": size_num,
@@ -145,7 +101,7 @@ def query(size_num, device):
                 "must": [
                     {
                         "match": {
-                            "catalog.desc.keyword": device
+                            "catalog.desc.keyword": "INV-CONTEOS_MOVILES-"+id
                         }
                     },
                     {
@@ -158,12 +114,7 @@ def query(size_num, device):
                             }
                         }
                     }
-                ],
-                "must_not": {
-                    "exists": {
-                        "field": "payload.img_path"
-                    }
-                }
+                ]
             }
         }
     }
