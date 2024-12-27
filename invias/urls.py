@@ -35,5 +35,6 @@ urlpatterns = [
     path('ingesta/clean_data/<str:device>', clean.cleanData),
     path('ingesta/pasar_data/<str:device>', clean.pasarData),
     path('ingesta/update_img/<str:device>', app.updateImg),
+    path('ingesta/validate_img/<str:device>/<str:path>', app.validateImg),
     path('ingesta/validar_faltantes/<str:device>', app.validarFaltantes),
 ]

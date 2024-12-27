@@ -12,6 +12,7 @@ def updateImgElastic(urlElastic, device, path, database):
     
     search_after = None
     total_elements = 0
+    noEncontradas = 0
     while run_state:
         json_data = query(size_num, device)
         
@@ -33,28 +34,13 @@ def updateImgElastic(urlElastic, device, path, database):
             elementos = json.loads(obj_response.text)
             if len(elementos['hits']['hits']) == 0:
                 run_state = False
+                logTxt(device+'_NO_ENCONTRADAS', 'Total: '+noEncontradas)
                 print('----- Finished -----')
             else:
-                # Configuración de conexión
-                server = 'localhost'
-                username = ''
-                password = ''
-
                 try:
                     # Crear conexión
-                    connection = pyodbc.connect(
-                        "DRIVER={ODBC Driver 18 for SQL Server};"
-                        f"SERVER={server};"
-                        f"DATABASE={database};"
-                        f"UID={username};"
-                        f"PWD={password};"
-                        "TrustServerCertificate=yes;"
-                    )
-                    # print("Conexión exitosa")
-                    
-                    # Crear un cursor para ejecutar consultas
+                    connection = conexionDBLocal(device, database)
                     cursor = connection.cursor()
-                    
                     for item in elementos['hits']['hits']:
 
                         # Ejecutar una consulta de prueba
@@ -63,7 +49,7 @@ def updateImgElastic(urlElastic, device, path, database):
                         number_plate = item["_source"]['payload']['plate']
                         # print('incidence_id', incidence_id)
                         # print('number_plate', number_plate)
-                        cursor.execute("SELECT ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID WHERE r.INCIDENCEID = ? AND r.NumberPlate = ?", (incidence_id, number_plate))
+                        cursor.execute("SELECT ai.INCIDENCEID, ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID WHERE r.INCIDENCEID = ? AND r.NumberPlate = ?", (incidence_id, number_plate))
                         columns = [column[0] for column in cursor.description]  
                         rows = cursor.fetchall()
                         results = [dict(zip(columns, row)) for row in rows]
@@ -71,15 +57,27 @@ def updateImgElastic(urlElastic, device, path, database):
                         loadImagePlate = None
                         for result in results:
                             imageSource = result['ImageSource']
-                            imageSource = imageSource.replace('c:', path)
                             cutImageSource = result['CutImageSource']
-                            cutImageSource = cutImageSource.replace('c:', path)
+                            if 'c:' in imageSource:
+                                imageSource = imageSource.replace('c:', path)
+                            elif 'C:' in imageSource:
+                                imageSource = imageSource.replace('C:', path)
+                            if 'c:' in cutImageSource:
+                                cutImageSource = cutImageSource.replace('c:', path)
+                            elif 'C:' in cutImageSource:
+                                cutImageSource = cutImageSource.replace('C:', path)
                             # print('ImageSource',result['ImageSource'])
                             # print('CutImageSource',result['CutImageSource'])
                             if os.path.exists(imageSource):
                                 loadImageFull = updateImgAzure(imageSource, incidence_id)
+                            else:
+                                noEncontradas += 1
+                                logTxt(device+'_NO_ENCONTRADAS', str(result['INCIDENCEID'])+', '+imageSource)
                             if os.path.exists(cutImageSource):
                                 loadImagePlate = updateImgAzure(cutImageSource, incidence_id)
+                            else:
+                                noEncontradas += 1
+                                logTxt(device+'_NO_ENCONTRADAS', str(result['INCIDENCEID'])+', '+cutImageSource)
                                 
                             if loadImageFull and loadImagePlate:
                                 data_update = {
@@ -145,7 +143,7 @@ def query(size_num, device):
                 "must": [
                     {
                         "match": {
-                            "catalog.desc.keyword": device
+                            "catalog.desc": device
                         }
                     },
                     {
@@ -167,3 +165,95 @@ def query(size_num, device):
             }
         }
     }
+    
+
+def validarImages(device, path):
+
+    try:
+        
+        database = 'ANPR'+device
+        connection = conexionDBLocal(device, database)
+        cursor = connection.cursor()
+        
+        # cursor.execute("SELECT * FROM ANPR_Images")
+        cursor.execute("SELECT r.INCIDENCEID, ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID")
+        columns = [column[0] for column in cursor.description]  
+        rows = cursor.fetchall()
+        results = [dict(zip(columns, row)) for row in rows]
+        count = 0
+        countExist = 0
+        countNotExist = 0
+        for result in results:
+            count += 1
+            imageSource = result['ImageSource']
+            if 'c:' in imageSource:
+                imageSource = imageSource.replace('c:', path)
+            elif 'C:' in imageSource:
+                imageSource = imageSource.replace('C:', path)
+                
+            cutImageSource = result['CutImageSource']
+            if 'c:' in cutImageSource:
+                cutImageSource = cutImageSource.replace('c:', path)
+            elif 'C:' in cutImageSource:
+                cutImageSource = cutImageSource.replace('C:', path)
+            notExistImg = ''
+            notExistImgCut = ''
+            if not os.path.exists(imageSource):
+                notExistImg = imageSource
+                countNotExist += 1
+                print(count, 'NOT EXIST IMG','->', imageSource)
+            else:
+                countExist += 1
+                print(count, 'EXIST IMG','->', imageSource)
+            if not os.path.exists(cutImageSource):
+                notExistImgCut = cutImageSource
+                countNotExist += 1
+                print(count, 'NOT EXIST IMG','->', cutImageSource)
+            else:
+                countExist += 1
+                print(count, 'EXIST IMG','->', cutImageSource)
+                
+            logTxt(device+'_NOT_EXIST', str(result['INCIDENCEID'])+', '+notExistImg+', '+notExistImgCut)
+        
+        logTxt(device+'_resumen', 'Total: '+str(count)+', Existen: '+str(countExist)+', No Existen: '+str(countNotExist))
+        print(' --> FINISHED <-- ')
+        
+        #Subir imagenes faltantes
+        if countExist > 0:
+            print(' --> Inicia proceso de subir imagenes faltantes <-- ')
+            urlElastic = 'http://20.99.184.101/elastic-api/'
+            updateImgElastic(urlElastic, device, path, database)
+        
+    except Exception as e:
+        print("Error al conectar a la base de datos:", e)
+        
+# Funcion para crear los logs de la aplicacion
+def logTxt(name, text):
+    fileInfo = open(name+".txt","a+")
+    fileInfo.write(text + "\n")
+    fileInfo.close()
+    
+def conexionDBLocal(device, database):
+    # Configuración de conexión 
+    # server = 'localhost' # Para MAC
+    server = '(localdb)\\aplicacion' # Para Windows
+    username = ''
+    password = ''
+    ### Crear conexión para MAC
+    # connection = pyodbc.connect(
+    #     "DRIVER={ODBC Driver 18 for SQL Server};"
+    #     f"SERVER={server};"
+    #     f"DATABASE={database};"
+    #     f"UID={username};"
+    #     f"PWD={password};"
+    #     "TrustServerCertificate=yes;"
+    # )
+    ### Crear conexión para Windows
+    connection = pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        f"SERVER={server};"
+        f"DATABASE={database};"
+        "TrustServerCertificate=yes;"
+    )
+    print(" -- Conexión exitosa DB Local -- ")
+    return connection

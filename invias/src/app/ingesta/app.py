@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from invias.src.app.ingesta.elastic import updateElastic
-from invias.src.app.ingesta.updateImg import updateImgElastic
+from invias.src.app.ingesta.updateImg import updateImgElastic, validarImages
 from invias.src.app.ingesta.validarFaltantes import validarFaltantesLocalmente
 from threading import Thread
 
@@ -81,5 +81,15 @@ def validarFaltantes(request, device,):
     urlElastic = 'http://20.99.184.101/elastic-api/'
     
     Thread(target=validarFaltantesLocalmente, args=(urlElastic, device)).start()
+
+    return Response(response, status=status_response)
+
+@api_view(['GET'])
+def validateImg(request, device,path):
+    response = {'status': True}
+    status_response = status.HTTP_200_OK
+    #path = '/Users/henrryrojas/Documents'
+    pathNew =  path.replace('&','\\')
+    Thread(target=validarImages, args=(device, pathNew)).start()
 
     return Response(response, status=status_response)
