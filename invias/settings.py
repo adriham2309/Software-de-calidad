@@ -87,10 +87,10 @@ WSGI_APPLICATION = 'invias.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'invias2',
+        'NAME': 'invias',
         'HOST': 'localhost',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': 'saroa',
     }
 }
 

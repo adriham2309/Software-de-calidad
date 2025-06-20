@@ -1,19 +1,40 @@
-# ** Ministerio Publication - Manual**
-
 
 ## Requisitos para despliegue local:
-- Instancia de Postgresql (12+) corriendo en el sistema
-- Python 3 instalado (versión 3.7 > )
-- Ambiente virtual (opcional, pero se recomienda su uso)
+- Instancia de Postgresql (12+) corriendo en el sistema con BD creada llamada invias, password= saroa
+- Python 3 instalado (versión 3.8 > )
+- Microsoft OBDC Driver 18 for sql server setup
+
 
 ## Despliegue local
 
 1. Clonar el repositorio
-2. Activar el ambiente virtual
-3. Instalación de dependencias Python, correr el comando ```pip install -r requirements.txt``` el cual se encargará de instalar todas las librerias necesarias para iniciar el proyecto
-4. Configurar tu base de datos local en el archivo settings.py (/backend/melmac/settings.py) donde hay un apartado de las bases de datos donde tendras que hacer cambios en el elemento default incluyendo el usuario(USER), contraseña(PASSWORD) y puerto(PORT, si la bd esta corriendo en otro puerto que no sea el 5432).
-5. Crear las tablas en la base de datos ```python manage.py migrate```
-6. Correr el comando ```python manage.py runserver``` donde se podra verificar que el proyecto esta corriendo correctamente y estara publicado en la ruta http://localhost:8000 por defecto.
+2. Verificar los permisos de ejecucion en el terminal de power shell:
+
+- Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+3. Crear entorno virtual dentro del proyecto ejemplo: (C:\Users\Documents\calidad_del_dato1.2) y correr los siguientes comandos:
+    1. python -m venv env 
+    2. env/Scripts/activate
+
+4. Instalación de dependencias Python, correr los comandos: 
+    1. ```pip install -r requirements.txt``` 
+    2. ```pip install pyodbc``` 
+    3. ```pip install azure-storage-blob``` pip install waitress
+    4. ```pip install waitress```
+    5. ```pip install json5
+```
+
+5. Configurar tu base de datos postgres local en el archivo settings.py (calidad_del_dato1.2\invias\settings.py) donde hay un apartado de las bases de datos donde tendras que hacer cambios en el elemento default incluyendo el usuario(USER), contraseña(PASSWORD) y puerto(PORT, si la bd esta corriendo en otro puerto que no sea el 5432).
+
+6. modificar ruta archivo Software_calidad, eligiendo donde quede ubicado el proyecto ejemplo:("C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2")
+6.1 guardar arcchivo y ejecutar desde el explorador 
+
+7. buscar url (http://127.0.0.1:5000/)
+
+
+
+
+###############################################################################################################################################################################################
 
 ## Endpoints para Elastic Search
 
@@ -80,3 +101,6 @@ Se configura el dispositivo para validar la faltantes de la base de datos de Ela
 **Parametros**
 
 - device: Dispositivo al que se validarán las faltantes
+
+
+

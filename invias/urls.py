@@ -18,6 +18,8 @@ from django.urls import path
 from invias import views
 from invias.src.connection import one
 from invias.src.app.ingesta import app, clean
+from invias.src.flask_api import routes
+
 
 urlpatterns = [
     path('start/<str:option>', views.start),
@@ -36,5 +38,6 @@ urlpatterns = [
     path('ingesta/pasar_data/<str:device>', clean.pasarData),
     path('ingesta/update_img/<str:device>', app.updateImg),
     path('ingesta/validate_img/<str:device>/<str:path>', app.validateImg),
+    path('ingesta/calidad/<str:device>/<str:path>', app.calidad),
     path('ingesta/validar_faltantes/<str:device>', app.validarFaltantes),
 ]

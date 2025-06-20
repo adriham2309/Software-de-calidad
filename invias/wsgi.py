@@ -1,16 +1,17 @@
-"""
-WSGI config for invias project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
-"""
+# src/wsgi.py
 
 import os
-
 from django.core.wsgi import get_wsgi_application
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+
+# Importa tu app Flask
+from src.flask_api.routes import flask_app
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'invias.settings')
 
-application = get_wsgi_application()
+django_app = get_wsgi_application()
+
+# se Usa DispatcherMiddleware para unir Flask a Django
+application = DispatcherMiddleware(django_app, {
+    '/flask': flask_app,  # Todo lo que comience con /flask/ se va a Flask
+})

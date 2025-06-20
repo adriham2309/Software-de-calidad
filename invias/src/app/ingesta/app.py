@@ -2,94 +2,120 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from invias.src.app.ingesta.elastic import updateElastic
-from invias.src.app.ingesta.updateImg import updateImgElastic, validarImages
+from invias.src.app.ingesta.updateImg import updateImgElastic,validarImages,validar_calidad
+from invias.src.flask_api.routes import validar_imagenes_form,validar_calidad_form,validar_duplicados_form
 from invias.src.app.ingesta.validarFaltantes import validarFaltantesLocalmente
 from threading import Thread
+
+
 
 @api_view(['GET'])
 def updateData(request):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    
+
     # QA
-    urlElastic = 'http://20.150.153.184/elastic-api/' 
+    urlElastic = 'http://20.150.153.184/elastic-api/'
 
     # Prod
     # urlElastic = 'http://20.99.184.101/elastic-api/'
-    
+
     dateInit = "2024-08-01 00:00:00.000-0500"
     dateEnd = "2024-08-01 23:59:59.999-0500"
-    
+
     # Llamar a la consulta del elastic
-    Thread(target=updateElastic, args=(urlElastic, dateInit, dateEnd, False)).start()
+    Thread(target=updateElastic, args=(
+        urlElastic, dateInit, dateEnd, False)).start()
 
     return Response(response, status=status_response)
+
 
 @api_view(['GET'])
 def updateRunt(request, start, end):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    
+
     # QA
-    # urlElastic = 'http://20.150.153.184/elastic-api/' 
+    # urlElastic = 'http://20.150.153.184/elastic-api/'
 
     # Prod
     urlElastic = 'http://20.99.184.101/elastic-api/'
-    
+
     dateInit = start + " 00:00:00.000-0500"
     dateEnd = end + " 23:59:59.999-0500"
-    print('dateInit',dateInit)
+    print('dateInit', dateInit)
     print('dateEnd', dateEnd)
-    
+
     # Llamar a la consulta del elastic
-    Thread(target=updateElastic, args=(urlElastic, dateInit, dateEnd, True)).start()
+    Thread(target=updateElastic, args=(
+        urlElastic, dateInit, dateEnd, True)).start()
 
     return Response(response, status=status_response)
+
 
 @api_view(['GET'])
 def updateImg(request, device,):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    
+
     # QA
-    # urlElastic = 'http://20.150.153.184/elastic-api/' 
+    # urlElastic = 'http://20.150.153.184/elastic-api/'
 
     # Prod
     urlElastic = 'http://20.99.184.101/elastic-api/'
-    
+
     path = '/Users/henrryrojas/Documents'
     database = 'ANPR'
     # dateInit = start + " 00:00:00.000-0500"
     # dateEnd = end + " 23:59:59.999-0500"
     # print('dateInit',dateInit)
     # print('dateEnd', dateEnd)
-    
+
     # Llamar a la consulta del elastic
-    Thread(target=updateImgElastic, args=(urlElastic, device, path, database)).start()
+    Thread(target=updateImgElastic, args=(
+        urlElastic, device, path, database)).start()
+   
 
     return Response(response, status=status_response)
+
 
 @api_view(['GET'])
 def validarFaltantes(request, device,):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    
+
     # QA
-    # urlElastic = 'http://20.150.153.184/elastic-api/' 
+    # urlElastic = 'http://20.150.153.184/elastic-api/'
 
     # Prod
     urlElastic = 'http://20.99.184.101/elastic-api/'
-    
-    Thread(target=validarFaltantesLocalmente, args=(urlElastic, device)).start()
+
+    Thread(target=validarFaltantesLocalmente,
+           args=(urlElastic, device)).start()
 
     return Response(response, status=status_response)
 
+
 @api_view(['GET'])
-def validateImg(request, device,path):
+def validateImg(request, device, path):
     response = {'status': True}
     status_response = status.HTTP_200_OK
-    #path = '/Users/henrryrojas/Documents'
-    pathNew =  path.replace('&','\\')
+    # path = '/Users/henrryrojas/Documents'
+    pathNew = path.replace('&', '\\')
     Thread(target=validarImages, args=(device, pathNew)).start()
 
+
+    return Response(response, status=status_response)
+
+# Esto es una prueba para saber el match de los registros con las imagenes
+
+
+@api_view(['GET'])
+def calidad(request,device, path):
+    response = {'status': True}
+    status_response = status.HTTP_200_OK
+    pathNew = path.replace('&', '\\')
+    Thread(target=validar_calidad, args=(device, pathNew)).start()
+   
+ 
     return Response(response, status=status_response)

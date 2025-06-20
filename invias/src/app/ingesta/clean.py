@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from invias.src.app.ingesta.cleanElastic import cleanElastic, cleanElasticImg, pasarDel241al242
+from invias.src.flask_api.routes import validar_imagenes_form,validar_calidad_form,validar_duplicados_form
 from threading import Thread
 
 @api_view(['GET'])
@@ -15,12 +16,13 @@ def cleanData(request, device):
     # Prod
     urlElastic = 'http://20.99.184.101/elastic-api/'
     
-    date = "2024-06-30"
+    date = "2025-04-25"
+    #puedeEliminar= False
     # id = "729"
     
     # Llamar a la consulta del elastic
-    # response['data'] = cleanElastic(urlElastic, dateInit, dateEnd)
-    # Thread(target=cleanElastic, args=(urlElastic, date, puedeEliminar)).start()
+    #response['data'] = cleanElastic(urlElastic, dateInit, dateEnd)
+    #Thread(target=cleanElastic, args=(urlElastic, date, puedeEliminar)).start()
     
     Thread(target=cleanElasticImg, args=(urlElastic, device)).start()
 

@@ -1,11 +1,17 @@
 import json
 import requests
 import pytz
+import os
+import django
 
 from invias.src.app.ingesta.elastic import updateElasticQuery
 from django.conf import settings
 from requests.auth import HTTPBasicAuth
 from datetime import datetime
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'invias.settings')
+django.setup()
+
 
 def cleanElastic(urlElastic, date, puedeEliminar):
     size_num = 10000
@@ -148,8 +154,12 @@ def cleanElasticImg(urlElastic, id):
                     print('For error', str(e))
                     print('------------------------------------------')
             
-            last_item = elementos['hits']['hits'][-1]
-            search_after = last_item['sort']
+            if elementos['hits']['hits']:
+                last_item = elementos['hits']['hits'][-1]
+                search_after = last_item['sort']
+            else:
+                run = True  # Termina el ciclo si no hay más registros
+
             print('Total Registros: ', totalregistros)
             
             if len(elementos['hits']['hits']) < size_num:
@@ -167,14 +177,29 @@ def cleanElasticImg(urlElastic, id):
                         dos += 1
                         id_del = None
                         notImg = 0
+                        #registroReal=''
+                        #for item in value:
+                        #    notImg += 1
+                        #    if 'img_path' in item['payload'] and 'img_path_plate' in item['payload'] and 'runt' in item and 'rndc' in item:
+                        #       registroReal = item['_index']+'/_doc/'+item['_id']
+                        #    if 'img_path' not in item['payload'] and 'img_path_plate' not in item['payload']:
+                        #        id_del = item['_index']+'/_doc/'+item['_id']
+                        #if notImg == len(value) and id_del:
+                        #    i += 1
+                        #    print(' -- Delete Not IMG:',i, id_del)
+                        #   print(' -- Info:',key, registroReal)
+                        #    deleteDoc(urlElastic, id_del, id, i, puedeEliminar)
+                        registroReal = None
                         for item in value:
-                            notImg += 1
-                            if 'img_path' not in item['payload'] and 'img_path_plate' not in item['payload']:
+                            if 'img_path' in item['payload'] and 'img_path_plate' in item['payload'] and 'runt' in item and 'rndc' in item:
+                                registroReal = item['_index']+'/_doc/'+item['_id']
+                        if registroReal:
+                            for item in value:
                                 id_del = item['_index']+'/_doc/'+item['_id']
-                        if notImg == len(value) and id_del:
-                            i += 1
-                            print(' -- Delete Not IMG:',i, id_del)
-                            deleteDoc(urlElastic, id_del, id, i, puedeEliminar)
+                                if registroReal != id_del:
+                                    i += 1
+                                    print(' -- Delete Not IMG:',i, id_del)
+                                    deleteDoc(urlElastic, id_del, id, i, puedeEliminar)
                         else: # si en todos los casos tiene las imagenes
                             validate = 0
                             id_del_1 = None
@@ -215,7 +240,15 @@ def cleanElasticImg(urlElastic, id):
                                             deleteDoc(urlElastic, id_del_2, id, i, puedeEliminar)
                                 print(' -- Delete Older 2:',i, id_del_2)
                                 deleteDoc(urlElastic, id_del_2, id, i, puedeEliminar)
-                    
+                indices_unicos = set()
+                for index_list in keysIguales.values():
+                    for idx in index_list:
+                        indices_unicos.add(idx)
+                print('--------------------------------------------------------------------------------')
+                print('Lista de _index encontrados:')
+                for idx in sorted(indices_unicos):
+                    print('-', idx)
+                print('Total de índices únicos encontrados:', len(indices_unicos)) 
                 fecha_fin = datetime.now(pytz.timezone(settings.ENV_TIMEZONE)).strftime("%d-%m-%Y %H:%M:%S")
                 logTxt(id, 'Finalizo: ' + fecha_fin)
                 print('--------------------------------------------------------------------------------')
@@ -408,7 +441,7 @@ def jsonData1(size_num, id):
                                 "boost": 2,
                                 "format": "yyyy-MM-dd HH:mm:ss.SSSZZ",
                                 "gte": "2024-01-01 00:00:00.000-0500",
-                                "lte": "2024-12-31 23:59:59.999-0500"
+                                "lte": "2025-12-01 23:59:59.999-0500"
                             }
                         }
                     },
