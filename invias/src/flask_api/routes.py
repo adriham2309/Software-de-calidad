@@ -40,6 +40,62 @@ Home = """
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body">
+                        <b><h5 class="card-title" style="text-align:center">Servicios De Calidad</h5></b>
+                            <a href="/servicios" class="btn btn-primary w-100">Ir</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title" style="text-align:center">Proceso General</h5>
+                            <a href="/General-form" class="btn btn-success w-100">Iniciar</a>
+                            <a  href="/procesos" class="btn btn-dark mt-3">Ver Procesos</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert alert-info" role="alert">
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+</body>
+</html>
+"""
+
+
+servicios=  """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Software de Calidad - INVIAS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+    <a href="/" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-primary">Servicios de Calidad - INVIAS</h1>
+            <p class="lead">Herramientas De Gestion De Dispositivos</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <!-- Validar Imágenes -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
                         <h5 class="card-title" style="text-align:center">Gestion De Imágenes</h5>
                             <a href="/validar-imgs-form" class="btn btn-primary w-100">Iniciar</a>
                         </form>
@@ -78,17 +134,6 @@ Home = """
                     </div>
                 </div>
             </div>
-            <!-- General -->
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title" style="text-align:center">Proceso Ingesta</h5>
-                            <a href="/General-form" class="btn btn-primary w-100">Iniciar</a>
-                            <a href="/procesos" class="btn btn-outline-secondary mt-3">Ver Procesos</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
 
 
         </div>
@@ -108,6 +153,7 @@ Home = """
 </html>
 """
 
+
 form_calidad= """
 <!DOCTYPE html>
 <html>
@@ -118,7 +164,7 @@ form_calidad= """
 <body class="bg-light" >
 
     <div class="container py-5">
-        <a href="/" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
+        <a href="/servicios" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
         
         <div class="row justify-content-center">
             
@@ -162,7 +208,7 @@ form_gestionar_imgs= """
 <body class="bg-light">
 
     <div class="container py-5">
-        <a href="/" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
+        <a href="/servicios" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
         
         <div class="row justify-content-center">
             
@@ -205,7 +251,7 @@ form_regis_faltantes= """
 <body class="bg-light">
 
     <div class="container py-5">
-        <a href="/" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
+        <a href="/servicios" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
         
         <div class="row justify-content-center">
             
@@ -244,7 +290,7 @@ form_dplicados= """
 <body class="bg-light">
 
     <div class="container py-5">
-        <a href="/" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
+        <a href="/servicios" style="width:50px;height:40px;padding: 5px 5px;;"class="btn btn-danger">Atras</a>
         
         <div class="row justify-content-center">
             
@@ -293,18 +339,19 @@ form_General= """
                                 <label for="device" class="form-label">Dispositivo</label>
                                 <input type="text" class="form-control" name="device" required>
                             </div>
-                            
+                            <!--
                             <div class="mb-3">
                                 <label for="device" class="form-label">URL Backup</label>
                                 <input type="text" class="form-control" name="url" required>
                             </div>
+                            -->
                         
                             <div class="mb-3">
                                 <label for="path" class="form-label">Ruta Imagenes</label>
                                 <input type="text" class="form-control" name="path" required>
                             </div>
                             <div class="mb-3">
-                                <label for="kafka_env" class="form-label">Entorno Kafka</label>
+                                <label for="kafka_env" class="form-label">Entorno De Ejecucion</label>
                                 <select class="form-select" name="kafka_env" required>
                                     <option value="" disabled selected>Seleccione una opción</option>
                                     <option value="QA">QA</option>
@@ -352,6 +399,10 @@ def mostrar_procesos():
 @flask_app.route("/")
 def index():
     return render_template_string(Home)
+
+@flask_app.route("/servicios")
+def servicios_calidad():
+    return render_template_string(servicios)
 
 @flask_app.route("/validar-calidad-form")
 def calidad():
@@ -527,21 +578,22 @@ def General_form():
     from flask import request, redirect, url_for, flash
     from threading import Thread
 
-    url = request.form.get("url")
+    #url = request.form.get("url")
     device = request.form.get("device")
     path = request.form.get("path")
     entorno_kafka = request.form.get("kafka_env")
 
     try:
         path = path.replace('/', '\\')
-        url = url.replace('/', '\\')
+        #url = url.replace('/', '\\')
 
         # Capturar salida del proceso
         buffer = io.StringIO()
         sys.stdout = buffer
 
         # Ejecutar proceso en hilo
-        Thread(target=restaurar, args=(device, url, path, entorno_kafka)).start()
+        #Thread(target=restaurar, args=(device, url, path, entorno_kafka)).start()   este es para restaurar que recibe url 
+        Thread(target=restaurar, args=(device,path, entorno_kafka)).start()
 
         sys.stdout = sys.__stdout__  # restaurar consola
         log_output = buffer.getvalue()

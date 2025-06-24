@@ -54,11 +54,8 @@ def BD_ingesta_log(cursor, device):
 
 
 
-def restaurar(device, url, path, entorno_kafka):
-    with open("procesos_log.txt", "w", encoding="utf-8") as f:
-        f.write("🔁 Iniciando proceso...\n")
-        f.write("🔁 En proceso...\n")
-        f.flush()
+def restaurar(device,path, entorno_kafka):
+    
     path_incidence = path
     nombre_db = f"ANPR{device}"
     sql_connection_string = f"Server=(localdb)\\aplicacion;Database={nombre_db};User Id=;Password=;MultipleActiveResultSets=true;trustServerCertificate=true;"
@@ -249,35 +246,4 @@ def act_appsettings(entorno_kafka1, path_incidence, sql_connection_string, devic
         print(f"❌ Error inesperado: {e}")
 
 
-def ejecutar(exe_file,urlhost,device):
-    
-    
-    try:
-        server = '(localdb)\\aplicacion'
-        conn = pyodbc.connect(
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER={server};"
-            "DATABASE=master;"
-            "Trusted_Connection=yes;"
-            "TrustServerCertificate=yes;"
-        )
-        conn.autocommit = True
-        cursor = conn.cursor()
-        
-        if not os.path.exists(exe_file):
-            print(f"❌ No se encontró el ejecutable: {exe_file}")
-            return
 
-        # Ejecutar el .exe con la URL 
-        subprocess.Popen([exe_file, urlhost], shell=True)
-        
-        insert_sql = """
-        update ingesta.dbo.Procesos set Estado=7 where Dispositivo=?;
-        """
-        cursor.execute(insert_sql, (device))
-        print("✅ Registro de proceso insertado.")
-
-        print(f"✅ Ejecutado correctamente: {exe_file} con argumento {urlhost}")
-
-    except Exception as e:
-        print(f"❌ Error al ejecutar el archivo: {e}")
