@@ -1,4 +1,4 @@
-# Calidad del Dato 1.2
+# Software de calidad 
 
 ## Descripción
 
