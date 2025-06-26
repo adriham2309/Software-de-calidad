@@ -8,20 +8,44 @@
 <body class="bg-light">
 
 <div class="container py-5">
-    <h2 class="mb-4">📄 Resultado del último proceso</h2>
-
-    <pre style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; font-size: 14px; max-height: 400px; overflow-y: auto;">{{ log }}</pre>
-
-    <a href="/" class="btn btn-primary mt-3">Volver al Inicio</a>
-</div>
-
-<div id="loadingBar" class="progress mt-3" style="display:none;">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%">Procesando...</div>
+    <h2 class="mb-4">📄 Procesos en ejecución</h2>
+    {% if procesos and procesos|length > 0 %}
+        {% for proceso in procesos %}
+            <div class="mb-3">
+                <div><b>{{ proceso.nombre }}</b> - {{ proceso.estado }}</div>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         id="barra-progreso-{{ loop.index0 }}"
+                         role="progressbar"
+                         style="width: {{ proceso.progreso }}%;">
+                        <span id="texto-progreso-{{ loop.index0 }}">{{ proceso.progreso }}%</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No hay procesos en ejecución.</div>
+    {% endif %}
+<!--   
+    <h2 class="mb-4 mt-5">📄 Resultado del último proceso</h2>
+    <pre style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; font-size: 14px; max-height: 400px; overflow-y: auto;">{{ log }}</pre> 
+-->
+    <a href="/" class="btn btn-danger mt-3">Volver al Inicio</a>
 </div>
 <script>
-document.getElementById('generalForm').addEventListener('submit', function() {
-    document.getElementById('loadingBar').style.display = 'block';
-});
+function actualizarBarras() {
+    fetch('/procesos_json')
+      .then(response => response.json())
+      .then(procesos => {
+        procesos.forEach((proceso, idx) => {
+          var barra = document.getElementById('barra-progreso-' + idx);
+          var texto = document.getElementById('texto-progreso-' + idx);
+          if(barra) barra.style.width = proceso.progreso + '%';
+          if(texto) texto.textContent = proceso.progreso + '%';
+        });
+      });
+}
+setInterval(actualizarBarras, 2000); // cada 2 segundos
 </script>
 
 </body>

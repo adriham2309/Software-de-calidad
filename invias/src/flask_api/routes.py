@@ -4,6 +4,7 @@ from invias.src.app.ingesta.updateImg import updateImgElastic,validarImages,vali
 from invias.src.app.ingesta.validarFaltantes import validarFaltantesLocalmente
 from invias.src.app.ingesta.cleanElastic import cleanElasticImg
 from invias.src.app.ingesta.General import restaurar
+from invias.src.flask_api.utils import agregar_proceso,procesos_en_cola,actualizar_progreso
 import json
 import os
 import io
@@ -49,9 +50,17 @@ Home = """
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title" style="text-align:center">Proceso General</h5>
+                        <h5 class="card-title" style="text-align:center">Proceso General De Ingesta</h5>
                             <a href="/General-form" class="btn btn-success w-100">Iniciar</a>
-                            <a  href="/procesos" class="btn btn-dark mt-3">Ver Procesos</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title" style="text-align:center">Procesos</h5>
+                            <a  href="/procesos" class="btn btn-dark w-100">Ver</a>
                         </form>
                     </div>
                 </div>
@@ -60,11 +69,19 @@ Home = """
     </div>
     {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <div class="alert alert-info" role="alert">
+    <div id="autoAlert" class="alert alert-success alert-dismissible fade show"
+         role="alert"
+         style="font-size:1.1em; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px; max-width: 90%;">
       {% for message in messages %}
-        {{ message }}
+        {{ message|safe }}
       {% endfor %}
     </div>
+    <script>
+      setTimeout(function() {
+        var alert = document.getElementById('autoAlert');
+        if(alert){ alert.style.display = 'none'; }
+      }, 4000); // 4 segundos
+    </script>
   {% endif %}
 {% endwith %}
 
@@ -97,7 +114,7 @@ servicios=  """
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title" style="text-align:center">Gestion De Imágenes</h5>
-                            <a href="/validar-imgs-form" class="btn btn-primary w-100">Iniciar</a>
+                            <a href="/validar-imgs-form" class="btn btn-success w-100">Iniciar</a>
                         </form>
                     </div>
                 </div>
@@ -108,7 +125,7 @@ servicios=  """
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title" style="text-align:center">Hoja de vida</h5>
-                            <a href="/validar-calidad-form" class="btn btn-primary w-100">Iniciar</a>
+                            <a href="/validar-calidad-form" class="btn btn-success w-100">Iniciar</a>
                         </form>
                     </div>
                 </div>
@@ -119,7 +136,7 @@ servicios=  """
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title" style="text-align:center">Gestion Registros Faltantes</h5>
-                            <a href="/validar-registros-form" class="btn btn-primary w-100">Iniciar</a>
+                            <a href="/validar-registros-form" class="btn btn-success w-100">Iniciar</a>
                         </form>
                     </div>
                 </div>
@@ -129,7 +146,7 @@ servicios=  """
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title" style="text-align:center">Gestion Duplicidad</h5>
-                            <a href="/validar-duplicidad" class="btn btn-primary w-100">Iniciar</a>
+                            <a href="/validar-duplicidad" class="btn btn-success w-100">Iniciar</a>
                         </form>
                     </div>
                 </div>
@@ -383,6 +400,8 @@ document.getElementById('generalForm').addEventListener('submit', function() {
 
 
 
+
+
 @flask_app.route('/procesos')
 def mostrar_procesos():
     log_path = "procesos_log.txt"  # archivo donde guardarás temporalmente la traza
@@ -392,7 +411,12 @@ def mostrar_procesos():
     else:
         contenido = "❌ No se ha generado ningún proceso aún."
 
-    return render_template('procesos.html', log=contenido)
+    # Pasa la cola de procesos a la plantilla
+    return render_template('procesos.html', log=contenido, procesos=procesos_en_cola)
+
+@flask_app.route('/procesos_json')
+def procesos_json():
+    return jsonify(procesos_en_cola)
 
 
 
@@ -438,29 +462,37 @@ def validar_imagenes_form():
     device = request.form.get("device")
     path = request.form.get("path")
     try:
-        validarImages(device, path)
-        return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #155724; background-color: #d4edda; padding: 10px; border-radius: 5px;'>
-        ✅ <strong>Validación de imágenes completada</strong> para <strong>{device}</strong>.
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        agregar_proceso(f"Validar imágenes: {device}", "En proceso")
+        buffer = io.StringIO()
+        sys.stdout = buffer
+        
+        Thread(target=validarImages, args=(device, path)).start()
+        
+        sys.stdout = sys.__stdout__  # restaurar consola
+        log_output = buffer.getvalue()
+
+        # Guardar traza en archivo
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(log_output)
+
+        flash("✅ Proceso en segundo plano iniciado.")
+        return redirect(url_for('index'))
 
     except Exception as e:
+        sys.stdout = sys.__stdout__
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(f"❌ Error: {str(e)}")
+
         return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
-        ❌ <strong>Error:</strong> {str(e)}
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        <div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
+            <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
+                ❌ <strong>Error:</strong> {str(e)}
+            </p>
+            <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
+                Volver
+            </a>
+        </div>
+        """
 
     
 
@@ -474,30 +506,39 @@ def validar_calidad_form():
     pathNew = path.replace('/', '\\')
 
     try:
+        proceso_HV=(f"Hoja de vida: {device}")
+        agregar_proceso(proceso_HV, "En proceso")
+        actualizar_progreso(proceso_HV, 10)
+        buffer = io.StringIO()
+        sys.stdout = buffer
         
-        Thread(target=validar_calidad, args=(device, pathNew)).start()
-        return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #333;'>
-        ✅ La verificación de calidad para <strong>{device}</strong> se está ejecutando en segundo plano.
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        Thread(target=validar_calidad, args=(device, pathNew,proceso_HV)).start()
+        
+        sys.stdout = sys.__stdout__  # restaurar consola
+        log_output = buffer.getvalue()
+
+        # Guardar traza en archivo
+        #with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            #f.write(log_output)
+
+        flash("✅ Proceso en segundo plano iniciado.")
+        return redirect(url_for('index'))
 
     except Exception as e:
+        sys.stdout = sys.__stdout__
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(f"❌ Error: {str(e)}")
+
         return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
-        ❌ <strong>Error:</strong> {str(e)}
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        <div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
+            <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
+                ❌ <strong>Error:</strong> {str(e)}
+            </p>
+            <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
+                Volver
+            </a>
+        </div>
+        """
 
     
 
@@ -510,30 +551,38 @@ def validar_registros_form():
 
     urlElastic = 'http://20.99.184.101/elastic-api/'
     try:
+        agregar_proceso(f"Validar Registros faltantes: {device}", "En proceso")
+        buffer = io.StringIO()
+        sys.stdout = buffer
         
         Thread(target=validarFaltantesLocalmente,
            args=(urlElastic, device)).start()
-        return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #333;'>
-        ✅ La verificación de faltantes para <strong>{device}</strong> se está ejecutando en segundo plano.
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        
+        sys.stdout = sys.__stdout__  # restaurar consola
+        log_output = buffer.getvalue()
+
+        # Guardar traza en archivo
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(log_output)
+
+        flash("✅ Proceso en segundo plano iniciado.")
+        return redirect(url_for('index'))
+
     except Exception as e:
+        sys.stdout = sys.__stdout__
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(f"❌ Error: {str(e)}")
+
         return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
-        ❌ <strong>Error:</strong> {str(e)}
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        <div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
+            <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
+                ❌ <strong>Error:</strong> {str(e)}
+            </p>
+            <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
+                Volver
+            </a>
+        </div>
+        """
     
 
 
@@ -545,30 +594,38 @@ def validar_duplicados_form():
 
     urlElastic = 'http://20.99.184.101/elastic-api/'
     try:
+        agregar_proceso(f"Validar Duplicados: {device}", "En proceso")
+        buffer = io.StringIO()
+        sys.stdout = buffer
         
         Thread(target=cleanElasticImg,
            args=(urlElastic, device)).start()
-        return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #333;'>
-        ✅ La verificación de Duplicados para <strong>{device}</strong> se está ejecutando en segundo plano.
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        
+        sys.stdout = sys.__stdout__  # restaurar consola
+        log_output = buffer.getvalue()
+
+        # Guardar traza en archivo
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(log_output)
+
+        flash("✅ Proceso en segundo plano iniciado.")
+        return redirect(url_for('index'))
+
     except Exception as e:
+        sys.stdout = sys.__stdout__
+        with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            f.write(f"❌ Error: {str(e)}")
+
         return f"""
-<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
-    <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
-        ❌ <strong>Error:</strong> {str(e)}
-    </p>
-    <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
-        Volver
-    </a>
-</div>
-"""
+        <div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>
+            <p style='font-size: 18px; color: #D8000C; background-color: #FFD2D2; padding: 10px; border-radius: 5px;'>
+                ❌ <strong>Error:</strong> {str(e)}
+            </p>
+            <a href='/' style='display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px;'>
+                Volver
+            </a>
+        </div>
+        """
 
 
     
@@ -584,6 +641,7 @@ def General_form():
     entorno_kafka = request.form.get("kafka_env")
 
     try:
+        
         path = path.replace('/', '\\')
         #url = url.replace('/', '\\')
 
@@ -599,8 +657,8 @@ def General_form():
         log_output = buffer.getvalue()
 
         # Guardar traza en archivo
-        with open("procesos_log.txt", "w", encoding='utf-8') as f:
-            f.write(log_output)
+        #with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            #f.write(log_output)
 
         flash("✅ Proceso en segundo plano iniciado.")
         return redirect(url_for('index'))

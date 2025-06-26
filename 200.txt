@@ -1,0 +1,30 @@
+=================================================
+
+Dispositivo: 200
+ruta: 0
+Total de imagenes sin cargar: 0
+Total Dividido: 0.0
+Total imagenes Procesadas: 0
+Total Dividido: 0.0
+====================================
+Total Imagenes: 0
+=================================================
+
+Dispositivo: 200
+ruta: 0
+Total de imagenes sin cargar: 0
+Total Dividido: 0.0
+Total imagenes Procesadas: 0
+Total Dividido: 0.0
+====================================
+Total Imagenes: 0
+=================================================
+
+Dispositivo: 200
+ruta: 0
+Total de imagenes sin cargar: 0
+Total Dividido: 0.0
+Total imagenes Procesadas: 0
+Total Dividido: 0.0
+====================================
+Total Imagenes: 0

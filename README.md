@@ -1,106 +1,164 @@
+# Calidad del Dato 1.2
 
-## Requisitos para despliegue local:
-- Instancia de Postgresql (12+) corriendo en el sistema con BD creada llamada invias, password= saroa
-- Python 3 instalado (versión 3.8 > )
-- Microsoft OBDC Driver 18 for sql server setup
+## Descripción
 
+Sistema para la gestión, validación y actualización de datos e imágenes provenientes de dispositivos Conteos Moviles para INVIAS. Permite sincronizar bases de datos SQL Server y PostgreSQL, almacenamiento en Azure Blob Storage y Elastic Search. Incluye interfaz web para monitoreo y validación de procesos.
+
+---
+
+## Estructura del proyecto
+
+- `/invias/src/app/ingesta`: Scripts de ingesta y validación de datos e imágenes.
+- `/invias/src/flask_api`: API Flask y plantillas web para monitoreo.
+- `/invias/settings.py`: Configuración de base de datos y entorno.
+- `/requirements.txt`: Dependencias del proyecto.
+
+---
+
+## Requisitos para despliegue local
+
+- Instancia de **PostgreSQL** (12+) corriendo en el sistema, con base de datos creada llamada `invias`, contraseña: `saroa`
+- **Python 3** instalado (versión > 3.8)
+- **Microsoft ODBC Driver 18 for SQL Server** instalado
+- Acceso a Azure Blob Storage (para almacenamiento de imágenes)
+- Acceso a un servidor Elastic Search
+
+---
 
 ## Despliegue local
 
-1. Clonar el repositorio
-2. Verificar los permisos de ejecucion en el terminal de power shell:
+1. **Clonar el repositorio**
+2. **Verificar permisos de ejecución** en PowerShell:
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+3. **Crear entorno virtual** dentro del proyecto (ejemplo: `C:\Users\Documents\calidad_del_dato1.2`):
+   ```powershell
+   python -m venv env
+   env\Scripts\activate
+   ```
+4. **Instalar dependencias Python**:
+   ```bash
+   pip install -r requirements.txt
+   pip install pyodbc
+   pip install azure-storage-blob
+   pip install waitress
+   pip install json5
+   ```
+5. **Configurar base de datos PostgreSQL**  
+   Edita el archivo `calidad_del_dato1.2\invias\settings.py` y ajusta el bloque de bases de datos (`default`) con tu usuario, contraseña y puerto (por defecto 5432).
+6. **Modificar ruta de archivo Software_calidad**  
+   Elige la ubicación del proyecto, por ejemplo:  
+   `C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2`  
+   Guarda el archivo y ejecuta desde el explorador.
+7. **Iniciar la aplicación**  
+   Accede a [http://127.0.0.1:5000/](http://127.0.0.1:5000/) en tu navegador.
 
-- Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+---
 
-3. Crear entorno virtual dentro del proyecto ejemplo: (C:\Users\Documents\calidad_del_dato1.2) y correr los siguientes comandos:
-    1. python -m venv env 
-    2. env/Scripts/activate
+## Funcionalidades principales
 
-4. Instalación de dependencias Python, correr los comandos: 
-    1. ```pip install -r requirements.txt``` 
-    2. ```pip install pyodbc``` 
-    3. ```pip install azure-storage-blob``` pip install waitress
-    4. ```pip install waitress```
-    5. ```pip install json5
-```
+- Ingesta y actualización de datos desde SQL Server y PostgreSQL hacia Elastic Search.
+- Validación y sincronización de imágenes entre almacenamiento local, base de datos y Azure Blob Storage.
+- Limpieza y migración de datos entre dispositivos.
+- Validación de calidad de datos e imágenes con reportes y logs.
+- Interfaz web para monitoreo de procesos en ejecución y visualización de logs.
+- Soporte para múltiples dispositivos ANPR y manejo de grandes volúmenes de datos.
 
-5. Configurar tu base de datos postgres local en el archivo settings.py (calidad_del_dato1.2\invias\settings.py) donde hay un apartado de las bases de datos donde tendras que hacer cambios en el elemento default incluyendo el usuario(USER), contraseña(PASSWORD) y puerto(PORT, si la bd esta corriendo en otro puerto que no sea el 5432).
-
-6. modificar ruta archivo Software_calidad, eligiendo donde quede ubicado el proyecto ejemplo:("C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2")
-6.1 guardar arcchivo y ejecutar desde el explorador 
-
-7. buscar url (http://127.0.0.1:5000/)
-
-
-
-
-###############################################################################################################################################################################################
+---
 
 ## Endpoints para Elastic Search
 
 ### GET /ingesta/update_data
 
-**Descripción**
+**Descripción:**  
+Consulta la base de datos del RUNT y RNDC en un rango de fechas y actualiza Elastic Search.
 
-Se configura una fecha inicial y final para la consulta de la base de datos del RUNT y RNDC para luego actualizar la base de datos de Elastic Search.
+**Parámetros:**
+- `urlElastic`: URL de Elastic Search
+- `dateInit`: Fecha inicial de la consulta
+- `dateEnd`: Fecha final de la consulta
+- `validarRunt`: Validar si existe el campo runt en la imagen
 
-**Parametros**
-
-- urlElastic: Url de Elastic Search
-- dateInit: Fecha inicial de la consulta
-- dateEnd: Fecha final de la consulta
-- validarRunt: Validar si existe el campo runt en la imagen
+---
 
 ### GET /ingesta/update_runt/{start}/{end}
 
-**Descripción**
+**Descripción:**  
+Consulta la base de datos del RUNT y RNDC en un rango de fechas y actualiza Elastic Search.
 
-Se configura una fecha inicial y final para la consulta de la base de datos del RUNT y RNDC para luego actualizar la base de datos de Elastic Search.
+**Parámetros:**
+- `start`: Fecha inicial de la consulta
+- `end`: Fecha final de la consulta
 
-**Parametros**
-
-- start: Fecha inicial de la consulta
-- end: Fecha final de la consulta
+---
 
 ### GET /ingesta/clean_data/{device}
 
-**Descripción**
+**Descripción:**  
+Limpia la base de datos de Elastic Search para el dispositivo especificado.
 
-Se configura el dispositivo para limpiar la base de datos de Elastic Search.
+**Parámetros:**
+- `device`: Dispositivo a limpiar
 
-**Parametros**
-
-- device: Dispositivo a limpiar
+---
 
 ### GET /ingesta/pasar_data/{device}
 
-**Descripción**
+**Descripción:**  
+Pasa datos de un dispositivo a otro.
 
-Se configura el dispositivo {device} para pasar data a otro dispositivo {device2}.
+**Parámetros:**
+- `device`: Dispositivo origen
 
-**Parametros**
-
-- device: Dispositivo a pasar data
+---
 
 ### GET /ingesta/update_img/{device}
 
-**Descripción**
+**Descripción:**  
+Actualiza las imágenes en Azure Blob Storage encontradas en la base de datos y el dispositivo local.
 
-Se configura el dispositivo para actualizar las imagenes en el blobstore de Azure, encontradas en la base de datos y el dispositovo local.
+**Parámetros:**
+- `device`: Dispositivo al que se actualizarán las imágenes
 
-**Parametros**
-
-- device: Dispositivo al que se actualizarán las imagenes
+---
 
 ### GET /ingesta/validar_faltantes/{device}
 
-**Descripción**
+**Descripción:**  
+Valida faltantes entre la base de datos de Elastic Search y la base de datos de SQL Server local para el dispositivo.
 
-Se configura el dispositivo para validar la faltantes de la base de datos de Elastic Search vs la base de datos de SQL Server Local.
+**Parámetros:**
+- `device`: Dispositivo a validar
 
-**Parametros**
+---
 
-- device: Dispositivo al que se validarán las faltantes
+## Monitoreo y logs
+
+- El progreso de los procesos puede visualizarse accediendo a la ruta `/procesos` en la aplicación web.
+- Los logs y reportes de validación se almacenan en archivos de texto para su posterior revisión.
+
+---
+
+## Pruebas
+
+_Si tienes pruebas automáticas, agrégalas aquí. Por ejemplo:_
+
+```bash
+pytest tests/
+```
+
+---
+
+## Contacto y soporte
+
+Para soporte, dudas o reportar errores, contactar al equipo de desarrollo o abrir un issue en el repositorio.
+
+---
+
+## Licencia
+
+_Especifica aquí la licencia del proyecto si aplica._
 
 
 

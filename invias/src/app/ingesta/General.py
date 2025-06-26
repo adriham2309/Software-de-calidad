@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 import time
 import subprocess
 from .updateImg import validar_calidad
+from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola
+
 
 
 
@@ -63,7 +65,8 @@ def restaurar(device,path, entorno_kafka):
     urlhost = 'http://0.0.0.0:8000'
     entorno_kafka1 = entorno_kafka
     server = '(localdb)\\aplicacion'
-
+    nombre_proceso = f"Proceso General: {device}"
+    proceso_HV= f"Proceso Hoja de Vida: {device}"
     try:
         # Crear ruta para .mdf/.ldf si no existe
         ruta_segura = r"C:\SQLData"
@@ -82,7 +85,8 @@ def restaurar(device,path, entorno_kafka):
 
         # 2. Registrar en bitácora (base ingesta)
         BD_ingesta_log(cursor, device)
-
+        agregar_proceso(nombre_proceso, "En proceso")
+        actualizar_progreso(nombre_proceso, 10)
         # 3. Verificar existencia y estado de la base de datos
         cursor.execute(f"SELECT state_desc FROM sys.databases WHERE name = '{nombre_db}';")
         row = cursor.fetchone()
@@ -143,11 +147,13 @@ def restaurar(device,path, entorno_kafka):
 
 
         # Estado 3
+        actualizar_progreso(nombre_proceso, 15)
         cursor.execute("UPDATE ingesta.dbo.Procesos SET Estado = 3 WHERE Dispositivo = ?;", (device,))
         print("✅ Estado 3: Vista creada.")
 
         # Actualizar registros en results
         cursor2.execute("UPDATE dbo.RESULTS SET send_server = 0;")
+        actualizar_progreso(nombre_proceso, 20)
         cursor.execute("UPDATE ingesta.dbo.Procesos SET Estado = 4 WHERE Dispositivo = ?;", (device,))
         print("✅ Estado 4: Registros actualizados.")
 
@@ -162,10 +168,11 @@ def restaurar(device,path, entorno_kafka):
         # Confirmar estado final y ejecutar hoja de vida
         cursor.execute("SELECT Estado FROM ingesta.dbo.Procesos WHERE Dispositivo = ? AND Estado = 5;", (device,))
         existe = cursor.fetchone()
+        actualizar_progreso(nombre_proceso, 25)
 
         if existe:
             print('--> Inicia proceso Hoja de vida <--')
-            validar_calidad(device, path)
+            validar_calidad(device, path,proceso_HV)
         else:
             print("⚠️ No se completó alguno de los procesos de restauración.")
 
@@ -209,10 +216,18 @@ def act_appsettings(entorno_kafka1, path_incidence, sql_connection_string, devic
             data = json.load(f)
 
         # Asegurar estructuras clave
+        data.setdefault("Serilog", {})
+        data["Serilog"].setdefault("WriteTo",[])
         data.setdefault("AppConfiguration", {})
         data.setdefault("EventRelayWorker", {})
         data["EventRelayWorker"].setdefault("KafkaConfiguration", {})
         data.setdefault("DevCatWebApiClientConfiguration", {})
+
+
+
+        #✅se actualiza el nombre del log
+        
+        data["Serilog"]["WriteTo"]["path"] = f"C:\\tmp\\Logs\\{device_name}.log"
 
         # ✅ Actualizar PathIncidence
         data["AppConfiguration"]["PathIncidence"] = path_incidence
@@ -235,7 +250,8 @@ def act_appsettings(entorno_kafka1, path_incidence, sql_connection_string, devic
         # ✅ Guardar archivo
         with open(json_file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-
+            
+    
         print("✅ appsettings.json actualizado correctamente.")
 
     except json.JSONDecodeError as e:

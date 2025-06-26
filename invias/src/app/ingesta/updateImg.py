@@ -8,6 +8,8 @@ from invias.src.app.ingesta.updateImgAzure import updateImgAzure
 import os
 from datetime import datetime, timedelta
 import subprocess
+from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola
+import time
 
 
 
@@ -274,8 +276,11 @@ def validarImages(device, path):
         print("Error al conectar a la base de datos:", e)
 
 
-def validar_calidad(device, path):
+def validar_calidad(device, path,proceso_HV):
     
+    nombre_proceso = f"Proceso General: {device}"
+    actualizar_progreso(nombre_proceso, 25)
+    actualizar_progreso(proceso_HV, 20)
     
     
     #Primer parte total de imagenes 
@@ -331,7 +336,7 @@ def validar_calidad(device, path):
     print("=================================================")
     print(f"Total Imgagenes: {total_img2}")
     print("=================================================")
-    
+    actualizar_progreso(proceso_HV, 30)
     try:
         #segunda parte  match de imagenes con registros 
         # Conectar a la base de datos
@@ -388,7 +393,7 @@ def validar_calidad(device, path):
         cursor.execute('SELECT incidenceid,ImagePath, CutImageSource FROM ANPR_Images')
         registros = cursor.fetchall()
         directorio = path
-
+        actualizar_progreso(proceso_HV, 40)
         # Obtener todos los nombres de archivos de imagenes en el directorio y sus subcarpetas
         nombres_img = set()
         for root, _, files in os.walk(directorio):
@@ -447,7 +452,7 @@ def validar_calidad(device, path):
                 "================================================================", "\n")
         logTxt1(device, "--> Validacion de registros VS imagenes finalizada <--")
         print("--> Validacion de imagenes finalizada <--")
-        
+        actualizar_progreso(proceso_HV, 50)
         #duplicados 
         query5 = '''
             SELECT DISTINCT incidenceid, numberplate, timestamp 
@@ -490,7 +495,7 @@ def validar_calidad(device, path):
             logTxt1(device,"=======================================")
             logTxt1(device,"\n"*1)
         logTxt1(device,f"Registros Duplicados: "+str(duplicados1),"\n"*1)
-
+        actualizar_progreso(proceso_HV, 60)
         #rango de fecha 
         query = 'select MIN(TimeStamp)as Fecha_Inicial, max(TimeStamp)as Fecha_ultima from RESULTS'
         cursor.execute(query)
@@ -507,7 +512,7 @@ def validar_calidad(device, path):
             print("No se encontraron registros")
         logTxt1(device,"=======================================")
         logTxt1(device, f"Rango de fecha:",resultado)
-
+        actualizar_progreso(proceso_HV, 70)
         #fechas
         query0 = 'SELECT DISTINCT CAST(timestamp AS DATE) AS fecha FROM results ORDER BY fecha;'
         cursor.execute(query0)
@@ -526,7 +531,7 @@ def validar_calidad(device, path):
             print(device, "No se encontraron fechas en la base de datos.")
 
         logTxt1(device, "=======================================")  
-        
+        actualizar_progreso(proceso_HV, 80)
         #dias entre fecha
         logTxt1(device,f'-->Total de dias entre fechas: {dias}')
         
@@ -562,7 +567,7 @@ def validar_calidad(device, path):
         else:
             logTxt1(device, "No se encontraron fechas en la base de datos.")
             print("No se encontraron fechas en la base de datos.")
-
+        actualizar_progreso(proceso_HV, 90)
         logTxt1(device, "=======================================","\n"*2)
         logTxt1(device, "=============Resumen=============")
         logTxt1(device,f"""
@@ -578,8 +583,8 @@ def validar_calidad(device, path):
         print('--> Fin del proceso: Dispositivo ',device,'<--')
         print('\n'*1)
         
-        
-        
+        actualizar_progreso(proceso_HV, 100)
+        actualizar_progreso(nombre_proceso, 35)
         insert_sql = """
     update ingesta.dbo.Procesos set Estado=6 where Dispositivo=?;
     """
@@ -598,6 +603,7 @@ def validar_calidad(device, path):
             exe_file = 'C:\\Ingesta_Invias_V-Prod_1.2\\Invias.NL.Relay.exe'
             urlhost='http://0.0.0.0:8000'
             ejecutar(exe_file,urlhost,device)
+
         else:
                 print("--> No se completó alguno de los procesos de restauración.")
                 
@@ -608,9 +614,10 @@ def validar_calidad(device, path):
         
         
         
-def ejecutar(exe_file,urlhost,device):
-    
-    
+def ejecutar(exe_file, urlhost, device):
+    import time
+    nombre_proceso = f"Proceso General: {device}"
+    actualizar_progreso(nombre_proceso, 45)
     try:
         server = '(localdb)\\aplicacion'
         conn = pyodbc.connect(
@@ -631,7 +638,7 @@ def ejecutar(exe_file,urlhost,device):
 
         # Ejecutar el .exe con la URL 
         subprocess.Popen([exe_file, urlhost], shell=True, cwd=working_dir)
-        
+        actualizar_progreso(nombre_proceso, 50)
         insert_sql = """
     update ingesta.dbo.Procesos set Estado=7 where Dispositivo=?;
     """
@@ -639,6 +646,22 @@ def ejecutar(exe_file,urlhost,device):
         print("✅ Registro de proceso insertado.")
 
         print(f"✅ Ejecutado correctamente: {exe_file} con argumento {urlhost}")
+        
+        txt_log_path = f"C:\\tmp\\Logs\\{device}.txt"  # Ahora busca un .txt
+
+        # Bucle infinito hasta encontrar el mensaje en el log
+        while True:
+            try:
+                if os.path.exists(txt_log_path):
+                    with open(txt_log_path, "r", encoding="utf-8") as f:
+                        contenido = f.read()
+                        if "[INF] NO events found to load" in contenido:
+                            actualizar_progreso(nombre_proceso, 100)
+                            print("✅ Progreso actualizado a 100% Ingesta finalizada.")
+                            break
+            except Exception as e:
+                print(f"❌ Error al leer el log TXT: {e}")
+            time.sleep(180)  # Espera 3 minutos antes de volver a intentar
 
     except Exception as e:
         print(f"❌ Error al ejecutar el archivo: {e}")
