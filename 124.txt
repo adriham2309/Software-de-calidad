@@ -1,0 +1,18 @@
+=================================================
+
+Dispositivo: 124
+ruta: 0
+Total de imagenes sin cargar: 0
+Total Dividido: 0.0
+Total imagenes Procesadas: 0
+Total Dividido: 0.0
+====================================
+Total Imagenes: 0
+ -->computer ID: 124
+ -->Velocidad -1: 0
+ -->NO_PLATE: 0
+
+
+=================================================
+---Inicia el proceso de Validacion de imagenes---
+=================================================

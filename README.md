@@ -28,6 +28,10 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
 ## Despliegue local
 
 1. **Clonar el repositorio**
+   ruta:
+   Elige la ubicación del proyecto, por ejemplo:  
+   `C:\Software_calidad` 
+   
 2. **Verificar permisos de ejecución** en PowerShell:
    ```powershell
    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -42,12 +46,8 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
    pip install -r requirements.txt
    ```
 5. **Configurar base de datos PostgreSQL**  
-   Edita el archivo `Software_Calidad\invias\settings.py` y ajusta el bloque de bases de datos (`default`) con tu usuario, contraseña y puerto (por defecto 5432).
-6. **Modificar ruta de archivo Software_calidad**  
-   Elige la ubicación del proyecto, por ejemplo:  
-   `C:\Software_calidad`  
-   Guarda el archivo y ejecuta desde el explorador.
-7. **Iniciar la aplicación** 
+   Edita el archivo `Software_Calidad\invias\settings.py` y ajusta el bloque de bases de datos (`default`) con tu usuario, contraseña y puerto (por defecto 5432). 
+6. **Iniciar la aplicación** 
     Ejecuta el archivo .bat (Softeare_Calidad.bat)
    Accede a [http://127.0.0.1:5000/](http://127.0.0.1:5000/) en tu navegador.
 
