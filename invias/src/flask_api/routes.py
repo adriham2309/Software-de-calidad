@@ -235,7 +235,7 @@ form_gestionar_imgs= """
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title" >Gestion De Imagenes Faltantes</h5>
-                        <form method="post" action="/validar-imagenes-form">
+                        <form method="post" action="/validar-imgs-form">
                             <div class="mb-3">
                                 <label for="device" class="form-label">Dispositivo</label>
                                 <input type="text" class="form-control" name="device" required>
@@ -462,18 +462,20 @@ def validar_imagenes_form():
     device = request.form.get("device")
     path = request.form.get("path")
     try:
-        agregar_proceso(f"Validar imágenes: {device}", "En proceso")
+        proceso_img=(f"Imagenes Faltantes: {device}")
+        agregar_proceso(proceso_img, "En proceso")
+        actualizar_progreso(proceso_img, 15)
         buffer = io.StringIO()
         sys.stdout = buffer
         
-        Thread(target=validarImages, args=(device, path)).start()
+        Thread(target=validarImages, args=(device, path,proceso_img)).start()
         
         sys.stdout = sys.__stdout__  # restaurar consola
         log_output = buffer.getvalue()
 
         # Guardar traza en archivo
-        with open("procesos_log.txt", "w", encoding='utf-8') as f:
-            f.write(log_output)
+        #with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            #f.write(log_output)
 
         flash("✅ Proceso en segundo plano iniciado.")
         return redirect(url_for('index'))
@@ -551,19 +553,21 @@ def validar_registros_form():
 
     urlElastic = 'http://20.99.184.101/elastic-api/'
     try:
-        agregar_proceso(f"Validar Registros faltantes: {device}", "En proceso")
+        proceso_rf=(f"Registros faltantes: {device}")
+        agregar_proceso(proceso_rf, "En proceso")
+        actualizar_progreso(proceso_rf, 10)
         buffer = io.StringIO()
         sys.stdout = buffer
         
         Thread(target=validarFaltantesLocalmente,
-           args=(urlElastic, device)).start()
+           args=(urlElastic, device,proceso_rf)).start()
         
         sys.stdout = sys.__stdout__  # restaurar consola
         log_output = buffer.getvalue()
 
         # Guardar traza en archivo
-        with open("procesos_log.txt", "w", encoding='utf-8') as f:
-            f.write(log_output)
+        #with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            #f.write(log_output)
 
         flash("✅ Proceso en segundo plano iniciado.")
         return redirect(url_for('index'))
@@ -594,19 +598,21 @@ def validar_duplicados_form():
 
     urlElastic = 'http://20.99.184.101/elastic-api/'
     try:
-        agregar_proceso(f"Validar Duplicados: {device}", "En proceso")
+        proceso_D=(f"Registros Duplicados: {device}")
+        agregar_proceso(proceso_D, "En proceso")
+        actualizar_progreso(proceso_D, 10)
         buffer = io.StringIO()
         sys.stdout = buffer
         
         Thread(target=cleanElasticImg,
-           args=(urlElastic, device)).start()
+           args=(urlElastic, device,proceso_D)).start()
         
         sys.stdout = sys.__stdout__  # restaurar consola
         log_output = buffer.getvalue()
 
         # Guardar traza en archivo
-        with open("procesos_log.txt", "w", encoding='utf-8') as f:
-            f.write(log_output)
+        #with open("procesos_log.txt", "w", encoding='utf-8') as f:
+            #f.write(log_output)
 
         flash("✅ Proceso en segundo plano iniciado.")
         return redirect(url_for('index'))
@@ -705,5 +711,5 @@ def General_form():
 
 
 if __name__ == "__main__":
-    flask_app.run(debug=True)
+    flask_app.run(debug=False)
 

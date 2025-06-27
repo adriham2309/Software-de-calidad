@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import time
 import subprocess
 from .updateImg import validar_calidad
-from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola
+from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola, actualizar_estado_y_progreso
 
 
 
@@ -65,7 +65,7 @@ def restaurar(device,path, entorno_kafka):
     urlhost = 'http://0.0.0.0:8000'
     entorno_kafka1 = entorno_kafka
     server = '(localdb)\\aplicacion'
-    nombre_proceso = f"Proceso General: {device}"
+    nombre_proceso = f"Proceso General Ingesta: {device}"
     proceso_HV= f"Proceso Hoja de Vida: {device}"
     try:
         # Crear ruta para .mdf/.ldf si no existe
@@ -85,7 +85,7 @@ def restaurar(device,path, entorno_kafka):
 
         # 2. Registrar en bitácora (base ingesta)
         BD_ingesta_log(cursor, device)
-        agregar_proceso(nombre_proceso, "En proceso")
+        agregar_proceso(nombre_proceso, "En proceso - Conexiones a BD")
         actualizar_progreso(nombre_proceso, 10)
         # 3. Verificar existencia y estado de la base de datos
         cursor.execute(f"SELECT state_desc FROM sys.databases WHERE name = '{nombre_db}';")
@@ -147,13 +147,14 @@ def restaurar(device,path, entorno_kafka):
 
 
         # Estado 3
-        actualizar_progreso(nombre_proceso, 15)
+
+        actualizar_estado_y_progreso(nombre_proceso, "Actualizacion Vista", 15)
         cursor.execute("UPDATE ingesta.dbo.Procesos SET Estado = 3 WHERE Dispositivo = ?;", (device,))
         print("✅ Estado 3: Vista creada.")
 
         # Actualizar registros en results
         cursor2.execute("UPDATE dbo.RESULTS SET send_server = 0;")
-        actualizar_progreso(nombre_proceso, 20)
+        actualizar_estado_y_progreso(nombre_proceso, "Actualizacion Registros A estado de envio = 0", 20)
         cursor.execute("UPDATE ingesta.dbo.Procesos SET Estado = 4 WHERE Dispositivo = ?;", (device,))
         print("✅ Estado 4: Registros actualizados.")
 
@@ -168,7 +169,7 @@ def restaurar(device,path, entorno_kafka):
         # Confirmar estado final y ejecutar hoja de vida
         cursor.execute("SELECT Estado FROM ingesta.dbo.Procesos WHERE Dispositivo = ? AND Estado = 5;", (device,))
         existe = cursor.fetchone()
-        actualizar_progreso(nombre_proceso, 25)
+        actualizar_estado_y_progreso(nombre_proceso, "Inicia Proceso Hoja De Vida", 25)
 
         if existe:
             print('--> Inicia proceso Hoja de vida <--')

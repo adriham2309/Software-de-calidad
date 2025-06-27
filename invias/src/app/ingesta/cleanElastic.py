@@ -3,11 +3,11 @@ import requests
 import pytz
 import os
 import django
-
 from invias.src.app.ingesta.elastic import updateElasticQuery
 from django.conf import settings
 from requests.auth import HTTPBasicAuth
 from datetime import datetime
+from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola,actualizar_estado_y_progreso
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'invias.settings')
 django.setup()
@@ -87,13 +87,13 @@ def cleanElastic(urlElastic, date, puedeEliminar):
         except Exception as e:
             logTxt('errorrr', str(e))
             
-def cleanElasticImg(urlElastic, id):
+def cleanElasticImg(urlElastic, id,proceso_D):
     size_num = 10000
     run = True
     search_after = None
     i = 0
     totalregistros = 0
-    puedeEliminar = False
+    puedeEliminar = True
     fecha_inicio = datetime.now(pytz.timezone(settings.ENV_TIMEZONE)).strftime("%d-%m-%Y %H:%M:%S")
     logTxt(id, 'Inicio: ' + fecha_inicio)
     dataDelete = {}
@@ -121,6 +121,7 @@ def cleanElasticImg(urlElastic, id):
             
             for item in elementos['hits']['hits']:
                 try:
+                    actualizar_estado_y_progreso(proceso_D, "Consultando Informacion De Elastic",25)
                     _id = item['_id']
                     _index = item['_index']
                     if _id in keysIguales:
@@ -158,11 +159,14 @@ def cleanElasticImg(urlElastic, id):
                 last_item = elementos['hits']['hits'][-1]
                 search_after = last_item['sort']
             else:
-                run = True  # Termina el ciclo si no hay más registros
+                run = True
+# Termina el ciclo si no hay más registros
 
             print('Total Registros: ', totalregistros)
             
             if len(elementos['hits']['hits']) < size_num:
+                actualizar_estado_y_progreso(proceso_D, "Consultando Casos De Duplicidad En elastic",30)
+
                 run = False
                 logTxt(id, 'Total Registros: ' + str(totalregistros))
                 uno = 0
@@ -200,7 +204,10 @@ def cleanElasticImg(urlElastic, id):
                                     i += 1
                                     print(' -- Delete Not IMG:',i, id_del)
                                     deleteDoc(urlElastic, id_del, id, i, puedeEliminar)
+                                    actualizar_estado_y_progreso(proceso_D, "Eliminacion De Duplicados Finalizada",100)
+
                         else: # si en todos los casos tiene las imagenes
+                            actualizar_progreso(proceso_D, 55)
                             validate = 0
                             id_del_1 = None
                             for item in value:
@@ -216,7 +223,10 @@ def cleanElasticImg(urlElastic, id):
                                 i += 1
                                 print(' -- Delete Not runt or rndc:',i, id_del_1)
                                 deleteDoc(urlElastic, id_del_1, id, i, puedeEliminar)
+                                actualizar_estado_y_progreso(proceso_D, "Eliminacion De Duplicados Finalizada",100)
+
                             else: 
+                                actualizar_progreso(proceso_D, 65)
                                 x += 1
                                 index_add = 0
                                 doc_delete = None
@@ -238,8 +248,12 @@ def cleanElasticImg(urlElastic, id):
                                         if len(value) > 2 and lenfor < len(value):
                                             print(' -- Delete Older 1:',i, id_del_2)
                                             deleteDoc(urlElastic, id_del_2, id, i, puedeEliminar)
+                                            actualizar_progreso(proceso_D, 100)
                                 print(' -- Delete Older 2:',i, id_del_2)
                                 deleteDoc(urlElastic, id_del_2, id, i, puedeEliminar)
+                                actualizar_estado_y_progreso(proceso_D, "Eliminacion De Duplicados Finalizada",100)
+
+                                
                 indices_unicos = set()
                 for index_list in keysIguales.values():
                     for idx in index_list:
@@ -256,6 +270,8 @@ def cleanElasticImg(urlElastic, id):
                 print('Device: ', id, ' -- Delete:', i)
                 print('Fin:', fecha_fin)
                 print('--------------------------------------------------------------------------------')
+                actualizar_estado_y_progreso(proceso_D, "Eliminacion De Duplicados Finalizada ---- Fin Del Proceso",100)
+
                 
         except Exception as e:
             print('errorrr', str(e))

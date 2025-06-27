@@ -25,7 +25,7 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
 
 ---
 
-## Despliegue local
+## Despliegue local Con ejecutable Waitrees
 
 1. **Clonar el repositorio**
    ruta:

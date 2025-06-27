@@ -10,3 +10,5 @@ if %errorLevel% neq 0 (
 cd /d "C:\Software_Calidad"
 call env\Scripts\activate
 waitress-serve --host=0.0.0.0 --port=5000 invias.src.flask_api.routes:flask_app
+
+

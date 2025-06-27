@@ -8,13 +8,13 @@ from invias.src.app.ingesta.updateImgAzure import updateImgAzure
 import os
 from datetime import datetime, timedelta
 import subprocess
-from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola
+from invias.src.flask_api.utils import agregar_proceso,actualizar_progreso,procesos_en_cola, actualizar_estado_y_progreso
 import time
 
 
 
 
-def updateImgElastic(urlElastic, device, path, database):
+def updateImgElastic(urlElastic, device, path, database,proceso_img):
     size_num = 10000
     run_state = True
 
@@ -42,6 +42,7 @@ def updateImgElastic(urlElastic, device, path, database):
         try:
             elementos = json.loads(obj_response.text)
             if len(elementos['hits']['hits']) == 0:
+                actualizar_progreso(proceso_img, 100)
                 run_state = False
                 print('----- Finished:', device,' -----')
             else:
@@ -59,6 +60,7 @@ def updateImgElastic(urlElastic, device, path, database):
                         # print('number_plate', number_plate)
                         cursor.execute(
                             "SELECT ai.INCIDENCEID, ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID WHERE r.INCIDENCEID = ? AND r.NumberPlate = ?", (incidence_id, number_plate))
+                        actualizar_estado_y_progreso(proceso_img, "Consultando Imagenes Encontradas Y No Encontradas",55)
                         columns = [column[0] for column in cursor.description]
                         rows = cursor.fetchall()
                         results = [dict(zip(columns, row)) for row in rows]
@@ -93,7 +95,7 @@ def updateImgElastic(urlElastic, device, path, database):
                                 noEncontradas += 1
                                 logTxt(
                                     device+'_NO_ENCONTRADAS', str(result['INCIDENCEID'])+', '+cutImageSource)
-
+                            actualizar_estado_y_progreso(proceso_img, "Actualizando Campos Con Imagenes Encontradas",60)
                             if loadImageFull and loadImagePlate:
                                 data_update = {
                                     "doc": {
@@ -106,6 +108,7 @@ def updateImgElastic(urlElastic, device, path, database):
                                         }
                                     }
                                 }
+                                actualizar_estado_y_progreso(proceso_img, "Campos De Imagenes Encontradas Actualizados",75)
 
                                 url_update_index = item["_index"] + \
                                     "/_update/" + item["_id"]
@@ -119,14 +122,19 @@ def updateImgElastic(urlElastic, device, path, database):
                                     data=data_query_update,
                                     headers=headers
                                 )
+                                actualizar_estado_y_progreso(proceso_img, "Actualizando Indices",85)
+
                                 update_response_text = json.loads(
                                     update_response.text)
                                 print('update_response_text:',
                                       update_response_text)
+                                actualizar_estado_y_progreso(proceso_img, "Actualizando",95)
+
 
                         # print('----------------------------------------------------')
                     last_item = elementos['hits']['hits'][-1]
                     search_after = last_item['sort']
+                    actualizar_estado_y_progreso(proceso_img, "Actualizacion realizada",100)
 
                 except Exception as e:
                     print("Error al conectar a la base de datos:", e)
@@ -186,7 +194,7 @@ def query(size_num, device):
     }
 
 
-def validarImages(device, path):
+def validarImages(device, path,proceso_img):
 
     try:
 
@@ -197,6 +205,7 @@ def validarImages(device, path):
         # cursor.execute("SELECT * FROM ANPR_Images")
         cursor.execute(
             "SELECT r.INCIDENCEID, ai.ImageSource, ai.CutImageSource FROM RESULTS r INNER JOIN ANPR_Images ai on r.INCIDENCEID = ai.INCIDENCEID")
+        actualizar_estado_y_progreso(proceso_img, "Consultando Imagenes En La BD",35)
         columns = [column[0] for column in cursor.description]
         rows = cursor.fetchall()
         results = [dict(zip(columns, row)) for row in rows]
@@ -265,12 +274,12 @@ def validarImages(device, path):
         logTxt(device+'_resumen', 'Total: '+str(count)+', Sin subir: '+str(countExist) +
                ', Subidas: '+str(countExistProcessed)+', No Existen: '+str(countNotExist))
         print(' --> FINISHED <-- ')
-
+        actualizar_estado_y_progreso(proceso_img, "Consultando Imagenes Existentes O No Existentes",45)
         # Subir imagenes faltantes
         if countExist > 0:
             print(' --> Inicia proceso de subir imagenes faltantes <-- ')
             urlElastic = 'http://20.99.184.101/elastic-api/'
-            updateImgElastic(urlElastic, device, path, database)
+            updateImgElastic(urlElastic, device, path, database,proceso_img)
 
     except Exception as e:
         print("Error al conectar a la base de datos:", e)
@@ -278,9 +287,9 @@ def validarImages(device, path):
 
 def validar_calidad(device, path,proceso_HV):
     
-    nombre_proceso = f"Proceso General: {device}"
-    actualizar_progreso(nombre_proceso, 25)
-    actualizar_progreso(proceso_HV, 20)
+    nombre_proceso = f"Proceso General Ingesta: {device}"
+    actualizar_estado_y_progreso(nombre_proceso, "Hoja De Vida En Proceso", 25)
+    actualizar_estado_y_progreso(proceso_HV, "En Proceso", 20)
     
     
     #Primer parte total de imagenes 
@@ -336,7 +345,8 @@ def validar_calidad(device, path,proceso_HV):
     print("=================================================")
     print(f"Total Imgagenes: {total_img2}")
     print("=================================================")
-    actualizar_progreso(proceso_HV, 30)
+    actualizar_estado_y_progreso(proceso_HV, "Informacion Sobre la carpeta de imagenes", 30)
+
     try:
         #segunda parte  match de imagenes con registros 
         # Conectar a la base de datos
@@ -393,7 +403,8 @@ def validar_calidad(device, path,proceso_HV):
         cursor.execute('SELECT incidenceid,ImagePath, CutImageSource FROM ANPR_Images')
         registros = cursor.fetchall()
         directorio = path
-        actualizar_progreso(proceso_HV, 40)
+        actualizar_estado_y_progreso(proceso_HV, "Hoja De Vida En Proceso -- Informacion BD", 40)
+        actualizar_estado_y_progreso(nombre_proceso, "Hoja De Vida En Proceso -- Informacion BD", 25)
         # Obtener todos los nombres de archivos de imagenes en el directorio y sus subcarpetas
         nombres_img = set()
         for root, _, files in os.walk(directorio):
@@ -452,7 +463,8 @@ def validar_calidad(device, path,proceso_HV):
                 "================================================================", "\n")
         logTxt1(device, "--> Validacion de registros VS imagenes finalizada <--")
         print("--> Validacion de imagenes finalizada <--")
-        actualizar_progreso(proceso_HV, 50)
+        actualizar_estado_y_progreso(proceso_HV, "Validacion Imagenes Finalizada", 50)
+        actualizar_estado_y_progreso(nombre_proceso, "Validacion Imagenes Finalizada", 25)
         #duplicados 
         query5 = '''
             SELECT DISTINCT incidenceid, numberplate, timestamp 
@@ -495,7 +507,8 @@ def validar_calidad(device, path,proceso_HV):
             logTxt1(device,"=======================================")
             logTxt1(device,"\n"*1)
         logTxt1(device,f"Registros Duplicados: "+str(duplicados1),"\n"*1)
-        actualizar_progreso(proceso_HV, 60)
+        actualizar_estado_y_progreso(proceso_HV, "Validacion Duplicados En BD Finalizada", 60)
+        actualizar_estado_y_progreso(nombre_proceso, "Validacion Duplicados En BD Finalizada", 25)
         #rango de fecha 
         query = 'select MIN(TimeStamp)as Fecha_Inicial, max(TimeStamp)as Fecha_ultima from RESULTS'
         cursor.execute(query)
@@ -512,7 +525,8 @@ def validar_calidad(device, path,proceso_HV):
             print("No se encontraron registros")
         logTxt1(device,"=======================================")
         logTxt1(device, f"Rango de fecha:",resultado)
-        actualizar_progreso(proceso_HV, 70)
+        actualizar_estado_y_progreso(proceso_HV, "Validacion Rango De Fechas Finalizada", 70)
+        actualizar_estado_y_progreso(nombre_proceso, "Validacion Rango De Fechas Finalizada", 25)
         #fechas
         query0 = 'SELECT DISTINCT CAST(timestamp AS DATE) AS fecha FROM results ORDER BY fecha;'
         cursor.execute(query0)
@@ -531,7 +545,9 @@ def validar_calidad(device, path,proceso_HV):
             print(device, "No se encontraron fechas en la base de datos.")
 
         logTxt1(device, "=======================================")  
-        actualizar_progreso(proceso_HV, 80)
+        actualizar_estado_y_progreso(proceso_HV, "Validacion Dias Entre Fechas Finalizada", 80)
+        actualizar_estado_y_progreso(nombre_proceso, "Validacion Dias Entre Fechas Finalizada", 25)
+
         #dias entre fecha
         logTxt1(device,f'-->Total de dias entre fechas: {dias}')
         
@@ -567,7 +583,7 @@ def validar_calidad(device, path,proceso_HV):
         else:
             logTxt1(device, "No se encontraron fechas en la base de datos.")
             print("No se encontraron fechas en la base de datos.")
-        actualizar_progreso(proceso_HV, 90)
+
         logTxt1(device, "=======================================","\n"*2)
         logTxt1(device, "=============Resumen=============")
         logTxt1(device,f"""
@@ -578,13 +594,17 @@ def validar_calidad(device, path,proceso_HV):
 --> Total de dias: {dias}
 --> Dias Conecutivos: {consecutivas}
         """)
+        actualizar_estado_y_progreso(proceso_HV, "Validacion Dias Consecutivos Finalizada", 90)
+        actualizar_estado_y_progreso(nombre_proceso, "Validacion Dias Consecutivos Finalizada", 25)
+
         
         print('\n'*1)
         print('--> Fin del proceso: Dispositivo ',device,'<--')
         print('\n'*1)
         
-        actualizar_progreso(proceso_HV, 100)
-        actualizar_progreso(nombre_proceso, 35)
+        actualizar_estado_y_progreso(proceso_HV, "Proceso Hoja De Vida Finalizado", 100)
+        actualizar_estado_y_progreso(nombre_proceso, "Proceso Hoja De Vida Finalizado", 35)
+
         insert_sql = """
     update ingesta.dbo.Procesos set Estado=6 where Dispositivo=?;
     """
@@ -616,8 +636,9 @@ def validar_calidad(device, path,proceso_HV):
         
 def ejecutar(exe_file, urlhost, device):
     import time
-    nombre_proceso = f"Proceso General: {device}"
-    actualizar_progreso(nombre_proceso, 45)
+    nombre_proceso = f"Proceso General Ingesta: {device}"
+    actualizar_estado_y_progreso(nombre_proceso, "Inicia Ejecucion", 45)
+
     try:
         server = '(localdb)\\aplicacion'
         conn = pyodbc.connect(
@@ -638,7 +659,9 @@ def ejecutar(exe_file, urlhost, device):
 
         # Ejecutar el .exe con la URL 
         subprocess.Popen([exe_file, urlhost], shell=True, cwd=working_dir)
-        actualizar_progreso(nombre_proceso, 50)
+        actualizar_estado_y_progreso(nombre_proceso, "Inicia Proceso De Ingesta", 50)
+
+
         insert_sql = """
     update ingesta.dbo.Procesos set Estado=7 where Dispositivo=?;
     """
@@ -656,7 +679,7 @@ def ejecutar(exe_file, urlhost, device):
                     with open(txt_log_path, "r", encoding="utf-8") as f:
                         contenido = f.read()
                         if "[INF] NO events found to load" in contenido:
-                            actualizar_progreso(nombre_proceso, 100)
+                            actualizar_estado_y_progreso(nombre_proceso, "✅ Proceso De Ingesta Finalizado", 100)
                             print("✅ Progreso actualizado a 100% Ingesta finalizada.")
                             break
             except Exception as e:
