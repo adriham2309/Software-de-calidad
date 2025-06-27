@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2\env"
+VIRTUAL_ENV="C:\Software_Calidad\env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

@@ -32,7 +32,7 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
    ```powershell
    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
-3. **Crear entorno virtual** dentro del proyecto (ejemplo: `C:\Users\Documents\calidad_del_dato1.2`):
+3. **Crear entorno virtual** dentro del proyecto (ejemplo: `C:\Software_Calidad`):
    ```powershell
    python -m venv env
    env\Scripts\activate
@@ -40,18 +40,15 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
 4. **Instalar dependencias Python**:
    ```bash
    pip install -r requirements.txt
-   pip install pyodbc
-   pip install azure-storage-blob
-   pip install waitress
-   pip install json5
    ```
 5. **Configurar base de datos PostgreSQL**  
-   Edita el archivo `calidad_del_dato1.2\invias\settings.py` y ajusta el bloque de bases de datos (`default`) con tu usuario, contraseña y puerto (por defecto 5432).
+   Edita el archivo `Software_Calidad\invias\settings.py` y ajusta el bloque de bases de datos (`default`) con tu usuario, contraseña y puerto (por defecto 5432).
 6. **Modificar ruta de archivo Software_calidad**  
    Elige la ubicación del proyecto, por ejemplo:  
-   `C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2`  
+   `C:\Software_calidad`  
    Guarda el archivo y ejecuta desde el explorador.
-7. **Iniciar la aplicación**  
+7. **Iniciar la aplicación** 
+    Ejecuta el archivo .bat (Softeare_Calidad.bat)
    Accede a [http://127.0.0.1:5000/](http://127.0.0.1:5000/) en tu navegador.
 
 ---
@@ -140,25 +137,17 @@ Valida faltantes entre la base de datos de Elastic Search y la base de datos de 
 
 ---
 
-## Pruebas
-
-_Si tienes pruebas automáticas, agrégalas aquí. Por ejemplo:_
-
-```bash
-pytest tests/
-```
 
 ---
 
 ## Contacto y soporte
 
-Para soporte, dudas o reportar errores, contactar al equipo de desarrollo o abrir un issue en el repositorio.
 
 ---
 
 ## Licencia
 
-_Especifica aquí la licencia del proyecto si aplica._
+
 
 
 

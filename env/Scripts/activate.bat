@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\adriham\Documents\Work\Desarrollo\endpoint_calidad\calidad_del_dato1.2\env
+set VIRTUAL_ENV=C:\Software_Calidad\env
 
 if not defined PROMPT set PROMPT=$P$G
 
