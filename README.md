@@ -20,8 +20,6 @@ Sistema para la gestión, validación y actualización de datos e imágenes prov
 - Instancia de **PostgreSQL** (12+) corriendo en el sistema, con base de datos creada llamada `invias`, contraseña: `saroa`
 - **Python 3** instalado (versión > 3.8)
 - **Microsoft ODBC Driver 18 for SQL Server** instalado
-- Acceso a Azure Blob Storage (para almacenamiento de imágenes)
-- Acceso a un servidor Elastic Search
 
 ---
 
